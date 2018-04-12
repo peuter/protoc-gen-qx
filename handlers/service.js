@@ -3,6 +3,25 @@ const findCommentByPath = protocPlugin.findCommentByPath
 const {getClassComment, getClassNamespace} = require('./base')
 const {baseNamespace} = require('../config')
 
+const normalizeComments = (comment, indent) => {
+  let res = []
+  comment.split('\n').forEach((line, index) => {
+    if ((!line || line.trim() === '*') && index === 0) {
+      // skip empty trailing lines
+      return
+    }
+    line = line.trim()
+    if (!line.startsWith('*')) {
+      line = '* ' + line
+    }
+    res.push(''.padStart(indent, ' ') + line)
+  })
+  if (res.length === 0) {
+    return ''.padStart(indent, ' ') + '*'
+  }
+  return res.join('\n')
+}
+
 const genServiceClass = (service, s, proto) => {
   const members = []
 
@@ -16,9 +35,9 @@ const genServiceClass = (service, s, proto) => {
     }
     members.push(`
     /**
-     * ${findCommentByPath([6, s, 2, r], proto.sourceCodeInfo.locationList)}
+${normalizeComments(findCommentByPath([6, s, 2, r], proto.sourceCodeInfo.locationList), 5)}
 ${paramComments.join('\n')}
-     * @returns {${baseNamespace}${rpc.outputType}} 
+     * @returns {Promise} resolves to {${baseNamespace}${rpc.outputType}} ${rpc.options.deprecated ? '     * @deprecated' : ''}
      */
     ${rpc.name}: function (payload${callbackParams}) {
       qx.core.Assert.assertInstance(payload, ${baseNamespace}${rpc.inputType})

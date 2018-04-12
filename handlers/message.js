@@ -71,7 +71,7 @@ const genTypeClass = (type, s, proto) => {
     if (list) {
       properties.push(`
     /**
-     * @type {qx.data.Array<${type.qxType}>}
+     * @type {qx.data.Array} array of {@link ${type.qxType}}
      */
     ${prop.name}: {
       check: 'qx.data.Array',
@@ -182,8 +182,8 @@ qx.Class.define('${classNamespace}', {
     /**
      * Serializes the given message to binary data (in protobuf wire
      * format), writing to the given BinaryWriter.
-     * @param {proto.core.BaseMessage} message
-     * @param {jspb.BinaryWriter} writer
+     * @param message {proto.core.BaseMessage}
+     * @param writer {jspb.BinaryWriter}
      * @suppress {unusedLocalVariables} f is only used for nested messages
      */
     serializeBinaryToWriter: function (message, writer) {
@@ -193,7 +193,7 @@ ${serializer.join('')}
     
     /**
      * Deserializes binary data (in protobuf wire format).
-     * @param {jspb.ByteSource} bytes The bytes to deserialize.
+     * @param bytes {jspb.ByteSource} The bytes to deserialize.
      * @return {${classNamespace}}
      */
     deserializeBinary: function (bytes) {
@@ -205,8 +205,8 @@ ${serializer.join('')}
     /**
      * Deserializes binary data (in protobuf wire format) from the
      * given reader into the given message object.
-     * @param {${classNamespace}} msg The message object to deserialize into.
-     * @param {jspb.BinaryReader} reader The BinaryReader to use.
+     * @param msg {${classNamespace}} The message object to deserialize into.
+     * @param reader {jspb.BinaryReader} The BinaryReader to use.
      * @return {${classNamespace}}
      */
     deserializeBinaryFromReader: function (msg, reader) {

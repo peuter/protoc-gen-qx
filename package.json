@@ -1,28 +1,55 @@
 {
-  "name": "protoc-gen-qx",
-  "version": "0.1.0",
-  "dependencies": {
-    "protoc-plugin": "0.0.6",
-    "google-protobuf": "^3.5.0",
-    "grpc-web-client": "^0.5.0"
+  "_from": "git+ssh://git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git",
+  "_id": "protoc-gen-qx@0.1.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/protoc-gen-qx",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "protoc-gen-qx@git+ssh://git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git",
+    "name": "protoc-gen-qx",
+    "escapedName": "protoc-gen-qx",
+    "rawSpec": "git+ssh://git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git",
+    "saveSpec": "git+ssh://git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git",
+    "fetchSpec": "git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git",
+    "gitCommittish": null
   },
-  "description": "protoc-gen-qx is a plugin for the `protoc` code generator. It creates qooxdoo class definitions from proto-files.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+ssh://git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git#3803416d99401d3fa7a69fd88b0bfdf1946fa55d",
+  "_spec": "protoc-gen-qx@git+ssh://git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git",
+  "_where": "/home/tobiasb/develop/viatraffic/frontend",
+  "author": {
+    "name": "Gonicus GmbH"
   },
   "bin": {
     "protoc-gen-qx": "index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git"
+  "bundleDependencies": false,
+  "dependencies": {
+    "google-protobuf": "^3.5.0",
+    "grpc-web-client": "^0.5.0",
+    "protoc-plugin": "0.0.6",
+    "webpack": "^4.4.1"
   },
+  "deprecated": false,
+  "description": "protoc-gen-qx is a plugin for the `protoc` code generator. It creates qooxdoo class definitions from proto-files.",
   "keywords": [
     "protoc",
     "qooxdoo",
     "protobuf"
   ],
-  "author": "Gonicus GmbH",
-  "license": "MIT"
+  "license": "MIT",
+  "main": "index.js",
+  "name": "protoc-gen-qx",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.1.0"
 }

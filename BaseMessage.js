@@ -1,3 +1,6 @@
+/**
+ * @asset(proto/*)
+ */
 qx.Class.define('proto.core.BaseMessage', {
   extend: qx.core.Object,
   type: 'abstract',
@@ -26,9 +29,9 @@ qx.Class.define('proto.core.BaseMessage', {
      * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
      * For the list of reserved names please see:
      *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
-     * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+     * @param opt_includeInstance {boolean} Whether to include the JSPB instance
      *     for transitional soy proto support: http://goto/soy-param-migration
-     * @return {!Object}
+     * @returns {!Object}
      */
     toObject: function (opt_includeInstance) {
       var obj = qx.util.Serializer.toJson(this);
@@ -40,12 +43,12 @@ qx.Class.define('proto.core.BaseMessage', {
 
     /**
      * Serializes the message to binary data (in protobuf wire format).
-     * @return {Uint8Array}
+     * @returns {Uint8Array}
      */
     serializeBinary: function () {
       var writer = new jspb.BinaryWriter();
       this.constructor.serializeBinaryToWriter(this, writer);
       return writer.getResultBuffer();
     }
-  }
+  }//###DEFER###
 })
