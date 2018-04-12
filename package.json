@@ -1,9 +1,25 @@
 {
-  "name": "protox-gen-qx",
+  "name": "protoc-gen-qx",
   "version": "0.1.0",
   "dependencies": {
     "protoc-plugin": "0.0.6",
     "google-protobuf": "^3.5.0",
     "grpc-web-client": "^0.5.0"
-  }
+  },
+  "description": "protoc-gen-qx is a plugin for the `protoc` code generator. It creates qooxdoo class definitions from proto-files.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.intranet.gonicus.de:viatraffic/protoc-gen-qx.git"
+  },
+  "keywords": [
+    "protoc",
+    "qooxdoo",
+    "protobuf"
+  ],
+  "author": "Gonicus GmbH",
+  "license": "MIT"
 }
