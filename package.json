@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "protoc-plugin": "0.0.6",
+    "google-protobuf": "^3.5.0",
+    "grpc-web-client": "^0.5.0"
+  }
+}
