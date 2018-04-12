@@ -1,4 +1,6 @@
 {
+  "name": "protox-gen-qx",
+  "version": "0.1.0",
   "dependencies": {
     "protoc-plugin": "0.0.6",
     "google-protobuf": "^3.5.0",
