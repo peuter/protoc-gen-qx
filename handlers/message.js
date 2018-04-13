@@ -66,6 +66,10 @@ const genTypeClass = (messageType, s, proto) => {
           emptyComparison: ' !== 0.0',
           comment: ''
         }
+        if (prop.defaultValue === undefined) {
+          // according to protobuf spec enums default value is always 0
+          prop.defaultValue = 0
+        }
         if (prop.typeName) {
           prop.comment = `
     /**
@@ -115,6 +119,10 @@ const genTypeClass = (messageType, s, proto) => {
     if (!type) {
       console.error('undefined type:', prop)
       return
+    }
+    if (prop.defaultValue === undefined && type.hasOwnProperty('defaultValue')) {
+      // according to protobuf spec enums default value is always 0
+      prop.defaultValue = type.defaultValue
     }
     let additionalPropertyCode = []
     if (prop.hasOwnProperty('oneofIndex') && prop.oneofIndex !== undefined) {
