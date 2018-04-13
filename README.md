@@ -71,3 +71,6 @@ $ protoc \
     --qx_out=skipDeps:generated \
     api.proto
 ```
+
+`dump`:
+Dumps the parsed proto files as JSON-String.

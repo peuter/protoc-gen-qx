@@ -2,15 +2,42 @@ const {getClassComment, getClassNamespace} = require('./base')
 const {baseNamespace} = require('../config')
 const typeMap = require('../types')
 
-const genTypeClass = (type, s, proto) => {
+const genTypeClass = (messageType, s, proto) => {
   const properties = []
-  const classNamespace = getClassNamespace(type, proto)
+  const classNamespace = getClassNamespace(messageType, proto)
 
   let serializer = []
   let deserializer = []
   let constructorCode = []
+  let oneOfs = []
+  let memberCode = []
 
-  type.fieldList.forEach(prop => {
+  messageType.oneofDeclList.forEach(prop => {
+    let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
+    const index = oneOfs.length
+    oneOfs.push(Object.assign({
+      types: [],
+      names: [],
+      event: `change${upperCase}`
+    }, prop))
+    memberCode.push(`
+    // oneOf property apply
+    _applyOneOf${index}: function (value, old, name) {
+      if (value !== null) {
+        this.set${upperCase}(value);
+      }
+      
+      // reset all other values
+      this.__oneOfs[${index}].forEach(function (prop) {
+        if (prop !== name) {
+          this.reset(prop);
+        }
+      }, this)
+    }
+    `)
+  })
+
+  messageType.fieldList.forEach(prop => {
     let type = typeMap[prop.type]
     const list = prop.label === 3
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
@@ -29,13 +56,13 @@ const genTypeClass = (type, s, proto) => {
           qxType: `${baseNamespace}${prop.typeName}`,
           readerCode: list ? `
           case ${prop.number}:
-           var value = new ${baseNamespace}${prop.typeName};
+            value = new ${baseNamespace}${prop.typeName};
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader);
             msg.get${upperCase}().push(value);
             break;
           ` : `
           case ${prop.number}:
-            var value = new ${baseNamespace}${prop.typeName};
+            value = new ${baseNamespace}${prop.typeName};
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader);
             msg.set${upperCase}(value);
             break;
@@ -67,6 +94,14 @@ const genTypeClass = (type, s, proto) => {
       console.error('undefined type:', prop)
       return
     }
+    let additionalPropertyCode = []
+    if (prop.hasOwnProperty('oneofIndex') && prop.oneofIndex !== undefined) {
+      const oneOf = oneOfs[prop.oneofIndex]
+      oneOf.types.push(prop.type)
+      oneOf.names.push(prop.name)
+      additionalPropertyCode.push(`,
+      apply: '_applyOneOf${prop.oneofIndex}'`)
+    }
 
     if (list) {
       properties.push(`
@@ -84,7 +119,7 @@ const genTypeClass = (type, s, proto) => {
     ${prop.name}: {
       check: '${type.qxType}',
       init: ${prop.defaultValue !== undefined ? prop.defaultValue : null},
-      event: 'change${upperCase}'
+      event: 'change${upperCase}'${additionalPropertyCode.join('\n')}
     }`)
     }
 
@@ -120,14 +155,14 @@ const genTypeClass = (type, s, proto) => {
       if (list) {
         deserializer.push(`
           case ${prop.number}:
-            var value = reader.read${type.pbType}();
+            value = reader.read${type.pbType}();
             msg.get${upperCase}().push(value);
             break;
 `)
       } else {
         deserializer.push(`
           case ${prop.number}:
-            var value = reader.read${type.pbType}();
+            value = reader.read${type.pbType}();
             msg.set${upperCase}(value);
             break;
 `)
@@ -135,11 +170,43 @@ const genTypeClass = (type, s, proto) => {
     }
   })
 
+  oneOfs.forEach((oneOf, index) => {
+    // try to find a matching type superset
+    let complexType = true
+    oneOf.types.some(entry => {
+      if (entry !== 11) {
+        complexType = false
+        return true
+      }
+    })
+    const oneofTypeCheck = complexType ? `
+      check: '${baseNamespace}.core.BaseMessage',` : ''
+    properties.push(`
+    
+    /**
+     * oneOfIndex: ${index}
+     */
+    ${oneOf.name}: {${oneofTypeCheck}
+      init: ${oneOf.defaultValue !== undefined ? oneOf.defaultValue : null},
+      event: '${oneOf.event}'
+    }`)
+
+    // write the one of members
+    if (index === 0) {
+      memberCode.unshift(`
+    // array with oneOf property groups
+    __oneOfs: null`)
+      constructorCode.push('this.__oneOfs = [];')
+    }
+    constructorCode.push(` this.__oneOfs[${index}] = ['${oneOf.names.join('\', \'')}'];`)
+  })
+
   if (deserializer.length) {
     deserializer = `      while (reader.nextField()) {
         if (reader.isEndGroup()) {
           break;
         }
+        var value;
         var field = reader.getFieldNumber();
         switch (field) {
 ${deserializer.join('')}
@@ -161,13 +228,13 @@ ${deserializer.join('')}
   *****************************************************************************
   */
   construct: function (props) {
-    ${constructorCode.join('\\\\n   ')}
+    ${constructorCode.join('\n   ')}
     this.base(arguments, props);
   },
   `
   }
 
-  const code = `${getClassComment(type, s, proto, 4)}
+  const code = `${getClassComment(messageType, s, proto, 4)}
 qx.Class.define('${classNamespace}', {
   extend: proto.core.BaseMessage,
   ${constructorCode}
@@ -221,6 +288,15 @@ ${deserializer}
   */
   properties: {
 ${properties.join(',')}
+  },
+  
+  /*
+  *****************************************************************************
+     MEMBERS
+  *****************************************************************************
+  */
+  members: {
+${memberCode.join(',\n')}    
   }
 })
 `

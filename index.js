@@ -82,6 +82,12 @@ CodeGeneratorRequest()
     }]
 
     protos.forEach(proto => {
+      if (parameters.dump === true) {
+        files.push({
+          name: `${proto.pb_package}-${proto.name}-extended.json`,
+          content: JSON.stringify(proto, null, 2)
+        })
+      }
       Object.keys(handlers).forEach( propName => {
         if (proto[propName]) {
           proto[propName].forEach((item, s) => {

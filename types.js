@@ -27,12 +27,12 @@ module.exports = {
   // 11: reference see message.js
   12: {
     qxType: 'Number',
-    pbType: 'Uint32',
+    pbType: 'Bytes',
     emptyComparison: ' !== 0'
   },
   13: {
-    qxType: 'Array',
-    pbType: 'Bytes',
+    qxType: 'Number',
+    pbType: 'Uint32',
     emptyComparison: ' !== 0'
   }
   // 14: enum see message.js
