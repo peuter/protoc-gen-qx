@@ -8,10 +8,24 @@ const genTypeClass = (messageType, s, proto) => {
 
   let serializer = []
   let deserializer = []
+  let statics = []
   let constructorCode = []
   let oneOfs = []
   let memberCode = []
 
+  messageType.enumTypeList.forEach(entry => {
+    let valueCode = []
+    entry.valueList.forEach(enumValue => {
+      valueCode.push(`${enumValue.name}: ${enumValue.number}`)
+    })
+    statics.push(`
+    /**
+     * @enum
+     */
+    ${entry.name}: {
+      ${valueCode.join(',\n      ')}
+    }`)
+  })
   messageType.oneofDeclList.forEach(prop => {
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
     const index = oneOfs.length
@@ -40,6 +54,7 @@ const genTypeClass = (messageType, s, proto) => {
   messageType.fieldList.forEach(prop => {
     let type = typeMap[prop.type]
     const list = prop.label === 3
+    prop.comment = ''
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
     if (!type && prop.typeName) {
       // reference to another proto message
@@ -48,7 +63,14 @@ const genTypeClass = (messageType, s, proto) => {
         type = {
           qxType: 'Number',
           pbType: 'Enum',
-          emptyComparison: ' !== 0.0'
+          emptyComparison: ' !== 0.0',
+          comment: ''
+        }
+        if (prop.typeName) {
+          prop.comment = `
+    /**
+     * Enum of type {@link ${baseNamespace}${prop.typeName}}
+     */`
         }
       } else if (prop.type === 11) {
         // reference
@@ -115,7 +137,7 @@ const genTypeClass = (messageType, s, proto) => {
     }`)
       constructorCode.push(`this.init${upperCase}(new qx.data.Array());`)
     } else {
-      properties.push(`
+      properties.push(`${prop.comment}
     ${prop.name}: {
       check: '${type.qxType}',
       init: ${prop.defaultValue !== undefined ? prop.defaultValue : null},
@@ -245,6 +267,7 @@ qx.Class.define('${classNamespace}', {
   *****************************************************************************
   */
   statics: {
+    ${statics.join(',\n    ')}${statics.length > 0 ? ',' : ''}
     
     /**
      * Serializes the given message to binary data (in protobuf wire
@@ -287,7 +310,7 @@ ${deserializer}
   *****************************************************************************
   */
   properties: {
-${properties.join(',')}
+${properties.join(',\n')}
   },
   
   /*
