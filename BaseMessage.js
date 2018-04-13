@@ -34,7 +34,7 @@ qx.Class.define('proto.core.BaseMessage', {
      * @returns {!Object}
      */
     toObject: function (opt_includeInstance) {
-      var obj = qx.util.Serializer.toJson(this);
+      var obj = qx.util.Serializer.toNativeObject(this);
       if (opt_includeInstance === true) {
         obj.$jspbMessageInstance = this;
       }

@@ -1,5 +1,6 @@
 const {getClassComment, getClassNamespace} = require('./base')
-const {baseNamespace} = require('../config')
+const config = require('../config')
+const baseNamespace = config.get('baseNamespace')
 const typeMap = require('../types')
 
 const genTypeClass = (messageType, s, proto) => {
@@ -249,6 +250,18 @@ ${deserializer.join('')}
     `
   }
 
+  // class basics
+  let initCode = [`extend: ${config.getExtend('messageType', classNamespace)}`]
+  const includes = config.getIncludes('messageType', classNamespace)
+  if (includes.length) {
+    initCode.push(`include: [${includes.join(', ')}]`)
+  }
+  const interfaces = config.getImplements('messageType', classNamespace)
+  if (interfaces.length) {
+    initCode.push(`implement: [${interfaces.join(', ')}]}`)
+  }
+
+
   if (constructorCode.length > 0) {
     // add constructor
     constructorCode = `
@@ -266,7 +279,7 @@ ${deserializer.join('')}
 
   const code = `${getClassComment(messageType, s, proto, 4)}
 qx.Class.define('${classNamespace}', {
-  extend: proto.core.BaseMessage,
+  ${initCode.join(',\n  ')},
   ${constructorCode}
   
   /*

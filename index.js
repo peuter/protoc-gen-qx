@@ -7,7 +7,8 @@ const memoryFs = new MemoryFileSystem();
 const {CodeGeneratorRequest, CodeGeneratorResponse, CodeGeneratorResponseError} = require('protoc-plugin');
 const fs = require('fs')
 const path = require('path')
-const {baseNamespace} = require('./config')
+const config = require('./config')
+const baseNamespace = config.get('baseNamespace')
 const handlers = {
   serviceList: require('./handlers/service'),
   enumTypeList: require('./handlers/enum'),
@@ -43,6 +44,9 @@ baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
   }
 `)
 
+// extensions must be required before parsing
+config.get('require').forEach(require)
+
 CodeGeneratorRequest()
   .then(async r => {
     const req = r.toObject()
@@ -60,7 +64,7 @@ CodeGeneratorRequest()
     }
 
     const protos = req.protoFileList.filter(p => req.fileToGenerateList.indexOf(p.name) !== -1)
-    
+
     const files = [{
       name: `source/class/${baseNamespace}/core/BaseService.js`,
       content: baseServiceClass

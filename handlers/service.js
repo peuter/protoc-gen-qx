@@ -1,7 +1,8 @@
 const protocPlugin = require('protoc-plugin')
 const findCommentByPath = protocPlugin.findCommentByPath
 const {getClassComment, getClassNamespace} = require('./base')
-const {baseNamespace} = require('../config')
+const config = require('../config')
+const baseNamespace = config.get('baseNamespace')
 
 const normalizeComments = (comment, indent) => {
   let res = []

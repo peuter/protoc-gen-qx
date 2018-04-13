@@ -74,3 +74,54 @@ $ protoc \
 
 `dump`:
 Dumps the parsed proto files as JSON-String.
+
+## Code customizations
+
+Some parts of the genererated code can be adjusted by a custom configuration file,
+e.g. you can include own mixins in the generated messageType classes or
+let them extend other classes.
+
+For a list of available options have a look at the `config.js` file in this plugins
+root folder.
+
+To override these default settings you have to add a file named `protoc-gen-qx.config.js`
+in the folder where you run your code generation from.
+
+The default config looks like this:
+
+```javascript
+module.exports {
+  baseNamespace: 'proto',
+  messageType: {
+    '*': {
+      // relative to baseNamespace (starting with .)
+      extend: '.core.BaseMessage',
+      include: [],
+      implement: []
+    }
+  },
+  service: {
+    '*': {
+      // relative to baseNamespace (starting with .)
+      extend: '.core.BaseService',
+      include: [],
+      implement: []
+    }
+  },
+  // list of external dependencies that need to be requires (e.g. for extensions)
+  require: []
+}
+```
+
+If you want to include a certain mixin in a messageType class you can use this config:
+
+```javascript
+module.exports {
+  messageType: {
+    'proto.api.MyMessage': {
+      // relative to baseNamespace (starting with .)
+      include: ['my.MMixin']
+    }
+  }
+}
+```

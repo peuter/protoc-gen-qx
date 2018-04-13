@@ -1,6 +1,7 @@
 const protocPlugin = require('protoc-plugin')
 const findCommentByPath = protocPlugin.findCommentByPath
-const {baseNamespace} = require('../config')
+const config = require('../config')
+const baseNamespace = config.get('baseNamespace')
 
 const getClassComment = (item, s, proto, commentPos) => {
   return `
