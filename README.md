@@ -50,6 +50,24 @@ this plugin uses webpack to convert them.
 1. google-protobuf (https://www.npmjs.com/package/google-protobuf)
 2. gRPC Web implementation by improbable (https://www.npmjs.com/package/grpc-web-client)
 
+These dependencies are automatically loaded using the DynamicScriptLoader in the proto.core.BaseMessage classes defer method.
+If you experience errors with missing dependencies, you have to include the generated dependency files as scripts to make them
+available before the qooxdoo classes are loaded.
+
+If you use the new qooxdoo-compiler you do not have to to anything as compiler reads the externaResources declaration
+from the Manifest.json.
+
+If you use the `generate.py` script to build your application you have to add the dependencies to your `config.json` file, e.g.:
+
+```json
+"add-script": [
+  { "uri": "resource/proto/google-protobuf.js"},
+  { "uri": "resource/proto/grpc-web-client.js"}
+]
+```
+
+Make sure that you have copied those files to the resources folder of your project before generating your application.
+
 ## Plugin parameters
 
 You can add parameters to the plugin call by using the following format:
