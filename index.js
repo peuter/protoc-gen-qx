@@ -32,15 +32,18 @@ baseMessageClass = baseMessageClass.replace(/@asset\(proto/, `@asset(${baseNames
 baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
 
   defer: function (statics) {
-    var dynLoader = new qx.util.DynamicScriptLoader([
-      qx.util.ResourceManager.getInstance().toUri(${externalResources.join('),\n      qx.util.ResourceManager.getInstance().toUri(')})
-    ]);
- 
-    qx.bom.Lifecycle.onReady(function () {
-      dynLoader.start().catch(function (err) {
-        qx.log.Logger.error(statics, 'failed to load scripts', err);
-      });
-    }, this);
+    if (!window.grpc) {
+      // load dependencies
+      var dynLoader = new qx.util.DynamicScriptLoader([
+        qx.util.ResourceManager.getInstance().toUri(${externalResources.join('),\n      qx.util.ResourceManager.getInstance().toUri(')})
+      ]);
+   
+      qx.bom.Lifecycle.onReady(function () {
+        dynLoader.start().catch(function (err) {
+          qx.log.Logger.error(statics, 'failed to load scripts', err);
+        });
+      }, this);
+    }
   }
 `)
 
@@ -81,7 +84,13 @@ CodeGeneratorRequest()
     "class"       : "source/class",
     "resource"    : "source/resource",
     "type"        : "library"
-  }
+  },
+   "externalResources": {
+    "script": [
+      "source/resource/proto/google-protobuf.js",
+      "source/resource/proto/grpc-web-client.js"
+    ]
+   }
 }`
     }]
 

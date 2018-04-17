@@ -6,8 +6,9 @@ module.exports = {
     defaultValue: 0
   },
   4: {
-    qxType: 'Number',
-    pbType: 'Uint64',
+    qxType: 'String',
+    pbType: 'Uint64String',
+    transform: '_toString',
     emptyComparison: ' !== 0',
     defaultValue: 0
   },

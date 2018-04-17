@@ -49,6 +49,14 @@ qx.Class.define('proto.core.BaseMessage', {
       var writer = new jspb.BinaryWriter();
       this.constructor.serializeBinaryToWriter(this, writer);
       return writer.getResultBuffer();
+    },
+
+    /**
+     * Transforms any value to a string
+     * @protected
+     */
+    _toString: function (value) {
+      return '' + value
     }
   }//###DEFER###
 })

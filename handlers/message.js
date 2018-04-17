@@ -134,6 +134,11 @@ const genTypeClass = (messageType, s, proto) => {
       apply: '_applyOneOf${prop.oneofIndex}'`)
     }
 
+    if (type.hasOwnProperty('transform')) {
+      additionalPropertyCode.push(`,
+      transform: '${type.transform}'`)
+    }
+
     if (list) {
       properties.push(`
     /**
