@@ -48,7 +48,7 @@ baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
 `)
 
 // extensions must be required before parsing
-config.get('require').forEach(require)
+// config.get('require').forEach(require)
 
 CodeGeneratorRequest()
   .then(async r => {
