@@ -155,6 +155,7 @@ const genTypeClass = (messageType, s, proto) => {
     ${prop.name}: {
       check: '${type.qxType}',
       init: ${prop.defaultValue !== undefined ? prop.defaultValue : null},
+      nullable: ${prop.defaultValue === undefined},
       event: 'change${upperCase}'${additionalPropertyCode.join('\n')}
     }`)
     }
