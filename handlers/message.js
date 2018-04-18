@@ -139,6 +139,11 @@ const genTypeClass = (messageType, s, proto) => {
       transform: '${type.transform}'`)
     }
 
+    if (prop.options && prop.options.hasOwnProperty('annotations')) {
+      additionalPropertyCode.push(`,
+      "@": ['${prop.options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`)
+    }
+
     if (list) {
       properties.push(`
     /**
@@ -156,7 +161,7 @@ const genTypeClass = (messageType, s, proto) => {
       check: '${type.qxType}',
       init: ${prop.defaultValue !== undefined ? prop.defaultValue : null},
       nullable: ${prop.defaultValue === undefined},
-      event: 'change${upperCase}'${additionalPropertyCode.join('\n')}
+      event: 'change${upperCase}'${additionalPropertyCode.join('')}
     }`)
     }
 

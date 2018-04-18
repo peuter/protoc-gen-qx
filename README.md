@@ -54,8 +54,8 @@ These dependencies are automatically loaded using the DynamicScriptLoader in the
 If you experience errors with missing dependencies, you have to include the generated dependency files as scripts to make them
 available before the qooxdoo classes are loaded.
 
-If you use the new qooxdoo-compiler you do not have to to anything as compiler reads the externaResources declaration
-from the Manifest.json.
+If you use the new qooxdoo-compiler you do not have to to anything as compiler reads the `externalResources` declaration
+from the generated Manifest.json.
 
 If you use the `generate.py` script to build your application you have to add the dependencies to your `config.json` file, e.g.:
 
@@ -66,7 +66,7 @@ If you use the `generate.py` script to build your application you have to add th
 ]
 ```
 
-Make sure that you have copied those files to the resources folder of your project before generating your application.
+> Make sure that you have copied those files to the resources folder of your project before generating your  application.
 
 ## Plugin parameters
 
@@ -142,4 +142,29 @@ module.exports {
     }
   }
 }
+```
+
+## Property annotations
+
+The protoc generator supports qooxdoos own annotations on property level by providing an own FieldOption for that purpose.
+You can declare an annotation for a property like this:
+
+```proto
+import "node_modules/protoc-gen-qx/protos/extensions.proto";
+
+message User {
+    uint64 uid = 1 [(qx.annotations) = 'primary,test'];
+}
+```
+
+which will generate this property definition:
+
+```js
+ uid: {
+  check: 'String',
+  init: 0,
+  event: 'changeUid',
+  transform: '_toString',
+  "@": ['primary', 'test']
+},
 ```
