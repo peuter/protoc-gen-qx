@@ -47,8 +47,13 @@ baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
   }
 `)
 
+require(__dirname + '/extensions_pb')
+
 // extensions must be required before parsing
-// config.get('require').forEach(require)
+config.get('require').forEach(dep => {
+  const depPath = path.normalize(path.join(process.cwd() + '/' + dep))
+  require(depPath)
+})
 
 CodeGeneratorRequest()
   .then(async r => {
