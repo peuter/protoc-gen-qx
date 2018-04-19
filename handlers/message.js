@@ -95,7 +95,7 @@ const genTypeClass = (messageType, s, proto) => {
             break;
           `,
           writerCode: list ? `
-      f = message.get${upperCase}();
+      f = message.get${upperCase}().toArray();
       if (f != null) {
         writer.writeRepeatedMessage(
           ${prop.number},
@@ -152,7 +152,7 @@ const genTypeClass = (messageType, s, proto) => {
     ${prop.name}: {
       check: 'qx.data.Array',
       deferredInit: true,
-      event: 'change${upperCase}'
+      event: 'change${upperCase}'${additionalPropertyCode.join('')}
     }`)
       constructorCode.push(`this.init${upperCase}(new qx.data.Array());`)
     } else {
@@ -244,7 +244,8 @@ const genTypeClass = (messageType, s, proto) => {
   })
 
   if (deserializer.length) {
-    deserializer = `      while (reader.nextField()) {
+    deserializer = `      msg.setDeserialized(true);
+      while (reader.nextField()) {
         if (reader.isEndGroup()) {
           break;
         }
