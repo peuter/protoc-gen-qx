@@ -76,7 +76,7 @@ qx.Class.define('proto.core.BaseService', {
             throw Error('no callback defined');
           }
           if (config.request === callback) {
-            config.request = new proto.vtapi.Empty();
+            throw Error('no payload defined');
           }
           grpc.invoke(serviceDefinition, Object.assign(config, {
             onMessage: callback.bind(context),
