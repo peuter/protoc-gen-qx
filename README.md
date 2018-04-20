@@ -144,6 +144,19 @@ module.exports {
 }
 ```
 
+You can also use regular expression as class selectors:
+```javascript
+module.exports {
+  messageType: {
+    '/proto.api.(MyMessage|MyOtherMessage)/': {
+      // relative to baseNamespace (starting with .)
+      include: ['my.MMixin']
+    }
+  }
+}
+```
+
+
 ## Property annotations
 
 The protoc generator supports qooxdoos own annotations on property level by providing an own FieldOption for that purpose.

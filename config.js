@@ -50,8 +50,21 @@ class Config {
       return this._config[option]
     }
     let config = this._config[option]['*'] ? Object.assign({}, this._config[option]['*']) : {}
-    if (identifier && identifier !== '*' && this._config[option].hasOwnProperty(identifier)) {
-      config = Object.assign(config, this._config[option][identifier])
+    if (identifier && identifier !== '*') {
+      // match the regexes
+      Object.keys(this._config[option]).filter( key => {
+        if (key.startsWith('/')) {
+          var parts = key.substring(1).split('/')
+          var regexp = RegExp(parts[0], parts[1])
+          return regexp.test(identifier)
+        }
+        return false
+      }).forEach(id => {
+        config = Object.assign(config, this._config[option][id])
+      })
+      if (this._config[option].hasOwnProperty(identifier)) {
+        config = Object.assign(config, this._config[option][identifier])
+      }
     }
     if (!key) {
       return config
