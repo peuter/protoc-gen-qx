@@ -32,7 +32,7 @@ module.exports = {
   },
   // 11: reference see message.js
   12: {
-    qxType: 'Number',
+    qxType: 'Uint8Array',
     pbType: 'Bytes',
     emptyComparison: ' !== 0'
   },
