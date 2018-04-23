@@ -44,10 +44,7 @@ qx.Class.define('proto.core.BaseService', {
 
     _applyMetadata: function (value) {
       if (value) {
-        this.__metadata = new grpc.Metadata({
-          username: 'admin',
-          password: 'secret'
-        })
+        this.__metadata = new grpc.Metadata(value)
       } else {
         this.__metadata = null;
       }
