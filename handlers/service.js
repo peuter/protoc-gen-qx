@@ -38,7 +38,7 @@ const genServiceClass = (service, s, proto) => {
     /**
 ${normalizeComments(findCommentByPath([6, s, 2, r], proto.sourceCodeInfo.locationList), 5)}
 ${paramComments.join('\n')}
-     * @returns {Promise} resolves to {${baseNamespace}${rpc.outputType}} ${rpc.options.deprecated ? '     * @deprecated' : ''}
+     * @returns {Promise} resolves to {${baseNamespace}${rpc.outputType}} ${rpc.options && rpc.options.deprecated ? '     * @deprecated' : ''}
      */
     ${rpc.name}: function (payload${callbackParams}) {
       qx.core.Assert.assertInstance(payload, ${baseNamespace}${rpc.inputType})
@@ -55,9 +55,20 @@ ${paramComments.join('\n')}
 
   const classNamespace = getClassNamespace(service, proto)
 
+  // class basics
+  let initCode = [`extend: ${config.getExtend('service', classNamespace)}`]
+  const includes = config.getIncludes('service', classNamespace)
+  if (includes.length) {
+    initCode.push(`include: [${includes.join(', ')}]`)
+  }
+  const interfaces = config.getImplements('service', classNamespace)
+  if (interfaces.length) {
+    initCode.push(`implement: [${interfaces.join(', ')}]}`)
+  }
+
   const code = `${getClassComment(service, s, proto, 6)}
 qx.Class.define('${classNamespace}', {
-  extend: proto.core.BaseService,
+  ${initCode.join(',\n  ')},
   
   /*
   *****************************************************************************

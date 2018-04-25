@@ -29,7 +29,10 @@ baseMessageClass = baseMessageClass.replace(/qx.Class.define\('proto.core/, `qx.
 baseMessageClass = baseMessageClass.replace(/@asset\(proto/, `@asset(${baseNamespace}`)
 
 // load external resources in defer
-baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
+if (config.get('skipDepLoadingFallback') === true) {
+  baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, '');
+} else {
+  baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
 
   defer: function (statics) {
     if (!window.grpc) {
@@ -46,6 +49,7 @@ baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
     }
   }
 `)
+}
 
 require(__dirname + '/extensions_pb')
 
@@ -72,6 +76,18 @@ CodeGeneratorRequest()
     }
 
     const protos = req.protoFileList.filter(p => req.fileToGenerateList.indexOf(p.name) !== -1)
+    const skipDeps = config.get('skipDeps')
+    let external = [
+      "proto/google-protobuf.js",
+      "proto/grpc-web-client.js"
+    ].filter(entry => !skipDeps.includes(entry.split('/').pop()))
+
+    let externalScriptsCode = '';
+    if (external.length > 0) {
+      externalScriptsCode = `  "script": [
+        "${external.join('",\n"')}"
+      ]`
+    }
 
     const files = [{
       name: `source/class/${baseNamespace}/core/BaseService.js`,
@@ -91,10 +107,7 @@ CodeGeneratorRequest()
     "type"        : "library"
   },
    "externalResources": {
-    "script": [
-      "source/resource/proto/google-protobuf.js",
-      "source/resource/proto/grpc-web-client.js"
-    ]
+    ${externalScriptsCode}
    }
 }`
     }]
@@ -124,6 +137,9 @@ CodeGeneratorRequest()
       let compiler
       const promises = []
       webpackConfig.forEach(async config => {
+        if (skipDeps.includes(config.output.filename)) {
+          return;
+        }
         config.output.path = '/build'
         compiler = webpack(config)
         compiler.outputFileSystem = memoryFs
