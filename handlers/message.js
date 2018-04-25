@@ -48,8 +48,7 @@ const genTypeClass = (messageType, s, proto) => {
           this.reset(prop);
         }
       }, this)
-    }
-    `)
+    }`)
   })
 
   messageType.fieldList.forEach(prop => {
@@ -221,6 +220,19 @@ const genTypeClass = (messageType, s, proto) => {
         return true
       }
     })
+    const firstUp = oneOf.name.substring(0, 1).toUpperCase() + oneOf.name.substring(1)
+    // experimental add a shortcut function to generaically set the oneof object
+    if (complexType) {
+      memberCode.push(`
+    setOneOf${firstUp}: function (obj) {
+      var type = obj.basename.toLowerCase();
+      if (this.__oneOfs[${index}].includes(type)) {
+        this.set(type, obj);
+      } else {
+        throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + this.__oneOfs[${index}].join(', '));
+      }
+    }`)
+    }
     const oneofTypeCheck = complexType ? `
       check: '${baseNamespace}.core.BaseMessage',` : ''
     properties.push(`
