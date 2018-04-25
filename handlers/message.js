@@ -40,9 +40,9 @@ const genTypeClass = (messageType, s, proto) => {
     // oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       if (value !== null) {
-        this.set${upperCase}(value${lineEnd}
+        this.set${upperCase}(value)${lineEnd}
       }
-      
+
       // reset all other values
       this.__oneOfs[${index}].forEach(function (prop) {
         if (prop !== name) {
@@ -81,19 +81,15 @@ const genTypeClass = (messageType, s, proto) => {
         // reference
         type = {
           qxType: `${baseNamespace}${prop.typeName}`,
-          readerCode: list ? `
-          case ${prop.number}:
+          readerCode: list ? `          case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
             msg.get${upperCase}().push(value)${lineEnd}
-            break${lineEnd}
-          ` : `
-          case ${prop.number}:
+            break${lineEnd}` : `          case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
             msg.set${upperCase}(value)${lineEnd}
-            break${lineEnd}
-          `,
+            break${lineEnd}`,
           writerCode: list ? `
       f = message.get${upperCase}().toArray()${lineEnd}
       if (f != null) {
@@ -102,8 +98,7 @@ const genTypeClass = (messageType, s, proto) => {
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }
-      ` : `
+      }` : `
       f = message.get${upperCase}()${lineEnd}
       if (f != null) {
         writer.writeMessage(
@@ -111,8 +106,7 @@ const genTypeClass = (messageType, s, proto) => {
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }
-      `,
+      }`,
           emptyComparison: ' !== null'
         }
       }
@@ -175,8 +169,7 @@ const genTypeClass = (messageType, s, proto) => {
           ${prop.number},
           f
         )${lineEnd}
-      }
-`)
+      }`)
       } else {
         serializer.push(`      f = message.get${upperCase}()${lineEnd}
       if (f${type.emptyComparison}) {
@@ -184,8 +177,7 @@ const genTypeClass = (messageType, s, proto) => {
           ${prop.number},
           f
         )${lineEnd}
-      }
-`)
+      }`)
       }
     }
 
@@ -196,14 +188,12 @@ const genTypeClass = (messageType, s, proto) => {
         deserializer.push(`          case ${prop.number}:
             value = reader.read${type.pbType}()${lineEnd}
             msg.get${upperCase}().push(value)${lineEnd}
-            break${lineEnd}
-`)
+            break${lineEnd}`)
       } else {
         deserializer.push(`          case ${prop.number}:
             value = reader.read${type.pbType}()${lineEnd}
             msg.set${upperCase}(value)${lineEnd}
-            break${lineEnd}
-`)
+            break${lineEnd}`)
       }
     }
   })
@@ -233,7 +223,6 @@ const genTypeClass = (messageType, s, proto) => {
     const oneofTypeCheck = complexType ? `
       check: '${baseNamespace}.core.BaseMessage',` : ''
     properties.push(`
-    
     /**
      * oneOfIndex: ${index}
      */
@@ -261,7 +250,7 @@ const genTypeClass = (messageType, s, proto) => {
         var value${lineEnd}
         var field = reader.getFieldNumber()${lineEnd}
         switch (field) {
-${deserializer.join('')}
+${deserializer.join('\n')}
           default:
             reader.skipField()${lineEnd}
             break${lineEnd}
@@ -279,6 +268,10 @@ ${deserializer.join('')}
   const interfaces = config.getImplements('messageType', classNamespace)
   if (interfaces.length) {
     initCode.push(`implement: [${interfaces.join(', ')}]}`)
+  }
+
+  if (serializer.length) {
+    serializer[0] = `      var ${serializer[0].trim()}`
   }
 
 
@@ -305,7 +298,7 @@ ${deserializer.join('')}
   *****************************************************************************
   */
   members: {
-${memberCode.join(',\n')}    
+${memberCode.join(',\n')}
   }
 `
   }
@@ -330,8 +323,8 @@ ${statics.length > 0 ? `    ${statics.join(',\n    ')},` : ''}
      * @suppress {unusedLocalVariables} f is only used for nested messages
      */
     serializeBinaryToWriter: function (message, writer) {
-      var f = undefined${lineEnd}
-${serializer.join('')}    },
+${serializer.join('\n')}
+    },
 
     /**
      * Deserializes binary data (in protobuf wire format).
@@ -352,7 +345,7 @@ ${serializer.join('')}    },
      * @return {${classNamespace}}
      */
     deserializeBinaryFromReader: function (msg, reader) {
-${deserializer}      
+${deserializer}
     }
   },
 
