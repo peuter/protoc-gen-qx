@@ -1,6 +1,6 @@
 module.exports = {
   2: {
-    qxType: 'Double',
+    qxType: 'Number',
     pbType: 'Float',
     emptyComparison: ' != null',
     defaultValue: 0
