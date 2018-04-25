@@ -2,6 +2,7 @@ const {getClassComment, getClassNamespace} = require('./base')
 const config = require('../config')
 const baseNamespace = config.get('baseNamespace')
 const typeMap = require('../types')
+const lineEnd = config.get('withoutSemi') ? '' : ';'
 
 const genTypeClass = (messageType, s, proto) => {
   const properties = []
@@ -39,13 +40,13 @@ const genTypeClass = (messageType, s, proto) => {
     // oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       if (value !== null) {
-        this.set${upperCase}(value);
+        this.set${upperCase}(value${lineEnd}
       }
       
       // reset all other values
       this.__oneOfs[${index}].forEach(function (prop) {
         if (prop !== name) {
-          this.reset(prop);
+          this.reset(prop)${lineEnd}
         }
       }, this)
     }`)
@@ -82,34 +83,34 @@ const genTypeClass = (messageType, s, proto) => {
           qxType: `${baseNamespace}${prop.typeName}`,
           readerCode: list ? `
           case ${prop.number}:
-            value = new ${baseNamespace}${prop.typeName};
-            reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader);
-            msg.get${upperCase}().push(value);
-            break;
+            value = new ${baseNamespace}${prop.typeName}()${lineEnd}
+            reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
+            msg.get${upperCase}().push(value)${lineEnd}
+            break${lineEnd}
           ` : `
           case ${prop.number}:
-            value = new ${baseNamespace}${prop.typeName};
-            reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader);
-            msg.set${upperCase}(value);
-            break;
+            value = new ${baseNamespace}${prop.typeName}()${lineEnd}
+            reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
+            msg.set${upperCase}(value)${lineEnd}
+            break${lineEnd}
           `,
           writerCode: list ? `
-      f = message.get${upperCase}().toArray();
+      f = message.get${upperCase}().toArray()${lineEnd}
       if (f != null) {
         writer.writeRepeatedMessage(
           ${prop.number},
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
-        );
+        )${lineEnd}
       }
       ` : `
-      f = message.get${upperCase}();
+      f = message.get${upperCase}()${lineEnd}
       if (f != null) {
         writer.writeMessage(
           ${prop.number},
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
-        );
+        )${lineEnd}
       }
       `,
           emptyComparison: ' !== null'
@@ -153,7 +154,7 @@ const genTypeClass = (messageType, s, proto) => {
       deferredInit: true,
       event: 'change${upperCase}'${additionalPropertyCode.join('')}
     }`)
-      constructorCode.push(`this.init${upperCase}(new qx.data.Array());`)
+      constructorCode.push(`this.init${upperCase}(new qx.data.Array())${lineEnd}`)
     } else {
       properties.push(`${prop.comment}
     ${prop.name}: {
@@ -168,23 +169,21 @@ const genTypeClass = (messageType, s, proto) => {
       serializer.push(type.writerCode)
     } else if (type.pbType) {
       if (list) {
-        serializer.push(`
-      f = message.get${upperCase}();
+        serializer.push(`      f = message.get${upperCase}()${lineEnd}
       if (f${type.emptyComparison}) {
-         writer.writeRepeated${type.pbType}(
-           ${prop.number},
-           f
-        );
+        writer.writeRepeated${type.pbType}(
+          ${prop.number},
+          f
+        )${lineEnd}
       }
 `)
       } else {
-        serializer.push(`
-      f = message.get${upperCase}();
+        serializer.push(`      f = message.get${upperCase}()${lineEnd}
       if (f${type.emptyComparison}) {
-         writer.write${type.pbType}(
-           ${prop.number},
-           f
-        );
+        writer.write${type.pbType}(
+          ${prop.number},
+          f
+        )${lineEnd}
       }
 `)
       }
@@ -194,18 +193,16 @@ const genTypeClass = (messageType, s, proto) => {
       deserializer.push(type.readerCode)
     } else if (type.pbType) {
       if (list) {
-        deserializer.push(`
-          case ${prop.number}:
-            value = reader.read${type.pbType}();
-            msg.get${upperCase}().push(value);
-            break;
+        deserializer.push(`          case ${prop.number}:
+            value = reader.read${type.pbType}()${lineEnd}
+            msg.get${upperCase}().push(value)${lineEnd}
+            break${lineEnd}
 `)
       } else {
-        deserializer.push(`
-          case ${prop.number}:
-            value = reader.read${type.pbType}();
-            msg.set${upperCase}(value);
-            break;
+        deserializer.push(`          case ${prop.number}:
+            value = reader.read${type.pbType}()${lineEnd}
+            msg.set${upperCase}(value)${lineEnd}
+            break${lineEnd}
 `)
       }
     }
@@ -225,11 +222,11 @@ const genTypeClass = (messageType, s, proto) => {
     if (complexType) {
       memberCode.push(`
     setOneOf${firstUp}: function (obj) {
-      var type = obj.basename.toLowerCase();
+      var type = obj.basename.toLowerCase()${lineEnd}
       if (this.__oneOfs[${index}].includes(type)) {
-        this.set(type, obj);
+        this.set(type, obj)${lineEnd}
       } else {
-        throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + this.__oneOfs[${index}].join(', '));
+        throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + this.__oneOfs[${index}].join(', '))${lineEnd}
       }
     }`)
     }
@@ -250,28 +247,27 @@ const genTypeClass = (messageType, s, proto) => {
       memberCode.unshift(`
     // array with oneOf property groups
     __oneOfs: null`)
-      constructorCode.push('this.__oneOfs = [];')
+      constructorCode.push('this.__oneOfs = []' + lineEnd)
     }
-    constructorCode.push(` this.__oneOfs[${index}] = ['${oneOf.names.join('\', \'')}'];`)
+    constructorCode.push(` this.__oneOfs[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
   })
 
   if (deserializer.length) {
-    deserializer = `      msg.setDeserialized(true);
+    deserializer = `      msg.setDeserialized(true)${lineEnd}
       while (reader.nextField()) {
         if (reader.isEndGroup()) {
-          break;
+          break${lineEnd}
         }
-        var value;
-        var field = reader.getFieldNumber();
+        var value${lineEnd}
+        var field = reader.getFieldNumber()${lineEnd}
         switch (field) {
 ${deserializer.join('')}
           default:
-            reader.skipField();
-            break;
+            reader.skipField()${lineEnd}
+            break${lineEnd}
         }
       }
-      return msg;
-    `
+      return msg${lineEnd}`
   }
 
   // class basics
@@ -296,24 +292,36 @@ ${deserializer.join('')}
   */
   construct: function (props) {
     ${constructorCode.join('\n   ')}
-    this.base(arguments, props);
-  },
-  `
+    this.base(arguments, props)${lineEnd}
+  },`
+  }
+
+  if (memberCode.length) {
+    memberCode = `,
+
+  /*
+  *****************************************************************************
+     MEMBERS
+  *****************************************************************************
+  */
+  members: {
+${memberCode.join(',\n')}    
+  }
+`
   }
 
   const code = `${getClassComment(messageType, s, proto, 4)}
 qx.Class.define('${classNamespace}', {
   ${initCode.join(',\n  ')},
-  ${constructorCode}
-  
+${constructorCode}
+
   /*
   *****************************************************************************
      STATICS
   *****************************************************************************
   */
   statics: {
-    ${statics.join(',\n    ')}${statics.length > 0 ? ',' : ''}
-    
+${statics.length > 0 ? `    ${statics.join(',\n    ')},` : ''}
     /**
      * Serializes the given message to binary data (in protobuf wire
      * format), writing to the given BinaryWriter.
@@ -322,21 +330,20 @@ qx.Class.define('${classNamespace}', {
      * @suppress {unusedLocalVariables} f is only used for nested messages
      */
     serializeBinaryToWriter: function (message, writer) {
-      var f = undefined;
-${serializer.join('')}
-    },
-    
+      var f = undefined${lineEnd}
+${serializer.join('')}    },
+
     /**
      * Deserializes binary data (in protobuf wire format).
      * @param bytes {jspb.ByteSource} The bytes to deserialize.
      * @return {${classNamespace}}
      */
     deserializeBinary: function (bytes) {
-      var reader = new jspb.BinaryReader(bytes);
-      var msg = new ${classNamespace}();
-      return ${classNamespace}.deserializeBinaryFromReader(msg, reader);
+      var reader = new jspb.BinaryReader(bytes)${lineEnd}
+      var msg = new ${classNamespace}()${lineEnd}
+      return ${classNamespace}.deserializeBinaryFromReader(msg, reader)${lineEnd}
     },
-    
+
     /**
      * Deserializes binary data (in protobuf wire format) from the
      * given reader into the given message object.
@@ -348,7 +355,7 @@ ${serializer.join('')}
 ${deserializer}      
     }
   },
-  
+
   /*
   *****************************************************************************
      PROPERTIES
@@ -356,16 +363,7 @@ ${deserializer}
   */
   properties: {
 ${properties.join(',\n')}
-  },
-  
-  /*
-  *****************************************************************************
-     MEMBERS
-  *****************************************************************************
-  */
-  members: {
-${memberCode.join(',\n')}    
-  }
+  }${memberCode}
 })
 `
   return {

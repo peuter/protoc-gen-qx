@@ -1,27 +1,10 @@
 const protocPlugin = require('protoc-plugin')
 const findCommentByPath = protocPlugin.findCommentByPath
-const {getClassComment, getClassNamespace} = require('./base')
+const {getClassComment, getClassNamespace, normalizeComments} = require('./base')
 const config = require('../config')
 const baseNamespace = config.get('baseNamespace')
 
-const normalizeComments = (comment, indent) => {
-  let res = []
-  comment.split('\n').forEach((line, index) => {
-    if ((!line || line.trim() === '*') && index === 0) {
-      // skip empty trailing lines
-      return
-    }
-    line = line.trim()
-    if (!line.startsWith('*')) {
-      line = '* ' + line
-    }
-    res.push(''.padStart(indent, ' ') + line)
-  })
-  if (res.length === 0) {
-    return ''.padStart(indent, ' ') + '*'
-  }
-  return res.join('\n')
-}
+
 
 const genServiceClass = (service, s, proto) => {
   const members = []
