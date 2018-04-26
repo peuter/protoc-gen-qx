@@ -3,7 +3,7 @@
 protoc-gen-qx is a plugin for the `protoc` code generator. It creates
 qooxdoo class definitions from proto-files.
 
-The generated code can be uses as any other external library, by including
+The generated code can be used as any other external library, by including
 it in your compile.json/config.json.
 
 Usage:
@@ -16,20 +16,20 @@ $ protoc \
     api.proto
 ```
 
-> If you add this code as a script entry in you package.json or install the protoc-gen-qx
+> If you add this code as a script entry in your package.json or install the protoc-gen-qx
 > plugin globally, you do not have to define the plugin path.
 > ```json
 > "scripts": {
 >    "protogen": "protoc -Iproto --qx_out=generated api.proto"
 >  }
 >```
-> Excecute the script with `npm run protogen`
+> Execute the script with `npm run protogen`
 
 
-This example generate an external qooxdoo library from the `api.proto`
+This example generates an external qooxdoo library from the `api.proto`
 file in the `proto` subfolder. You can include this library in your
-project by adding it as external library. e.g (add this code to your
-config.json).
+project by adding it as external library. e.g by adding this code to your
+config.json.
 
 ```json
 "libraries": {
@@ -50,11 +50,12 @@ this plugin uses webpack to convert them.
 1. google-protobuf (https://www.npmjs.com/package/google-protobuf)
 2. gRPC Web implementation by improbable (https://www.npmjs.com/package/grpc-web-client)
 
-These dependencies are automatically loaded using the DynamicScriptLoader in the proto.core.BaseMessage classes defer method.
+These dependencies are automatically loaded using the DynamicScriptLoader in the proto.core.BaseMessage classes defer method
+(you can turn off this behaviour by an config option).
 If you experience errors with missing dependencies, you have to include the generated dependency files as scripts to make them
 available before the qooxdoo classes are loaded.
 
-If you use the new qooxdoo-compiler you do not have to to anything as compiler reads the `externalResources` declaration
+If you use the new qooxdoo-compiler you do not have to to anything as the compiler reads the `externalResources` declaration
 from the generated Manifest.json.
 
 If you use the `generate.py` script to build your application you have to add the dependencies to your `config.json` file, e.g.:
@@ -66,19 +67,19 @@ If you use the `generate.py` script to build your application you have to add th
 ]
 ```
 
-> Make sure that you have copied those files to the resources folder of your project before generating your  application.
+> Make sure that you have copied those files to the resources folder of your project before generating your application.
 
 ## Plugin parameters
 
-You can add parameters to the plugin call by using the following format:
+You can add parameters to the plugin by using the following format:
 
 `--qx_out=paramName=paramValue,booleanParam:<output-path>`
 
 The plugin reads the following parameters:
 
 `skipDeps`:
-A boolean parameter which disabled the external dependency generation.
-Usually those script have only to be generated once, so you can skip
+A boolean parameter which disables the external dependency generation.
+Usually those scripts have to be generated only once, so you can skip
 this step in further code generation calls to save some time.
 
 Example:
