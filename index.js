@@ -81,7 +81,7 @@ CodeGeneratorRequest()
     let externalScriptsCode = '';
     if (external.length > 0) {
       externalScriptsCode = `  "script": [
-        "${external.join('",\n"')}"
+        "${external.join('",\n        "')}"
       ]`
     }
 
