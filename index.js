@@ -9,6 +9,7 @@ const fs = require('fs')
 const path = require('path')
 const config = require('./config')
 const baseNamespace = config.get('baseNamespace')
+const mustache = require('mustache')
 const handlers = {
   serviceList: require('./handlers/service'),
   enumTypeList: require('./handlers/enum'),
@@ -21,18 +22,14 @@ webpackConfig.forEach(config => {
   externalResources.push(`"${baseNamespace}/${config.output.filename}"`)
 })
 
-let baseServiceClass = fs.readFileSync(path.resolve(__dirname, './BaseService.js'), 'utf8')
-baseServiceClass = baseServiceClass.replace(/qx.Class.define\('proto.core/, `qx.Class.define('${baseNamespace}.core`)
-
-let baseMessageClass = fs.readFileSync(path.resolve(__dirname, './BaseMessage.js'), 'utf8')
-baseMessageClass = baseMessageClass.replace(/qx.Class.define\('proto.core/, `qx.Class.define('${baseNamespace}.core`)
-baseMessageClass = baseMessageClass.replace(/@asset\(proto/, `@asset(${baseNamespace}`)
-
-// load external resources in defer
-if (config.get('skipDepLoadingFallback') === true) {
-  baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, '');
-} else {
-  baseMessageClass = baseMessageClass.replace(/\/\/###DEFER###/g, `,
+let baseServiceClass = mustache.render(fs.readFileSync(path.join(__dirname, 'templates', 'BaseService.js.mustache'), 'utf8'), {
+  baseNamespace: baseNamespace
+})
+let baseMessageClass = mustache.render(fs.readFileSync(path.join(__dirname, 'templates', 'BaseMessage.js.mustache'), 'utf8'), {
+  baseNamespace: baseNamespace,
+  defer: config.get('skipDepLoadingFallback') === true
+    ? ''
+    : `,
 
   defer: function (statics) {
     if (!window.grpc) {
@@ -47,9 +44,8 @@ if (config.get('skipDepLoadingFallback') === true) {
         });
       }, this);
     }
-  }
-`)
-}
+  }`
+})
 
 require(__dirname + '/extensions_pb')
 

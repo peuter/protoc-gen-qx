@@ -20,8 +20,14 @@ const defaultConfig = {
       implement: []
     }
   },
-  // list of external dependencies that need to be requires (e.g. for extensions)
-  require: []
+  // list of external dependencies that need to be required (e.g. for extensions)
+  require: [],
+  // skip generation and including of selected external libraries (filename needed, e.g. google-protobuf.js or grpc-web-client.js)
+  skipDeps: [],
+  // if true: do not add the fallback loading of external dependencies to proto.core.BaseMessage' defer method
+  skipDepLoadingFallback: false,
+  // do not end lines of generated code with ';' if true
+  withoutSemi: false
 }
 
 class Config {
