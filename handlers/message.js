@@ -234,15 +234,19 @@ const genTypeClass = (messageType, s, proto) => {
       return this.ONEOFS[${index}]${lineEnd}
     }`)
     }
-    const oneofTypeCheck = complexType ? `
-      check: '${baseNamespace}.core.BaseMessage',` : ''
-    properties.push(`/**
-     * oneOfIndex: ${index}
-     */
-    ${oneOf.name}: {${oneofTypeCheck}
-      init: ${oneOf.defaultValue !== undefined ? oneOf.defaultValue : null},
-      event: '${oneOf.event}'
-    }`)
+
+    const propDef = {
+      comment: [`oneOfIndex: ${index}`],
+      name: oneOf.name,
+      entries: [
+        {key: 'init', value: oneOf.defaultValue !== undefined ? oneOf.defaultValue : 'null'},
+        {key: 'event', value: `'${oneOf.event}'`}
+      ]
+    }
+    if (complexType) {
+      propDef.entries.unshift({key: 'check', value: `${baseNamespace}.core.BaseMessage`})
+    }
+    properties.push(propDef)
 
     // write the one of members
     if (index === 0) {

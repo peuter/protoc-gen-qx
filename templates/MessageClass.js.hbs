@@ -87,11 +87,13 @@ qx.Class.define('{{classNamespace}}', {
   *****************************************************************************
   */
   members: {
-    
-  }{{/if}}{{#if defer}},
+{{#each members}}
+    {{&.}}{{#unless @last}},{{/unless}}
+{{/each}}
+  }{{/if}}{{#if defers}},
 
   defer: function (statics) {
-{{#each defer}}
+{{#each defers}}
     {{&.}}{{#unless @last}},{{/unless}}
 {{/each}}
   }{{/if}}
