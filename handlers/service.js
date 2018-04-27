@@ -2,8 +2,13 @@ const protocPlugin = require('protoc-plugin')
 const findCommentByPath = protocPlugin.findCommentByPath
 const {getClassComment, getClassNamespace, normalizeComments} = require('./base')
 const config = require('../config')
+const fs = require('fs')
+const path = require('path')
+const handlebars = require('handlebars')
 const baseNamespace = config.get('baseNamespace')
+const lineEnd = config.get('withoutSemi') ? '' : ';'
 
+const template = handlebars.compile(fs.readFileSync(path.join(__dirname, '..', 'templates', 'ServiceClass.js.hbs'), 'utf8'))
 
 
 const genServiceClass = (service, s, proto) => {
@@ -17,8 +22,7 @@ const genServiceClass = (service, s, proto) => {
       paramComments.push(`     * @param callback {Function} onMessage callback`)
       paramComments.push(`     * @param context {Object} onMessage callback context`)
     }
-    members.push(`
-    /**
+    members.push(`/**
 ${normalizeComments(findCommentByPath([6, s, 2, r], proto.sourceCodeInfo.locationList), 5)}
 ${paramComments.join('\n')}
      * @returns {Promise} resolves to {${baseNamespace}${rpc.outputType}} ${rpc.options && rpc.options.deprecated ? '     * @deprecated' : ''}
@@ -26,7 +30,7 @@ ${paramComments.join('\n')}
     ${rpc.name}: function (payload${callbackParams}) {
       qx.core.Assert.assertInstance(payload, ${baseNamespace}${rpc.inputType})
       return this._call(payload, {
-        methodName: "${rpc.name}",
+        methodName: '${rpc.name}',
         service: this,
         requestStream: ${rpc.clientStreaming},
         responseStream: ${rpc.serverStreaming},
@@ -49,21 +53,14 @@ ${paramComments.join('\n')}
     initCode.push(`implement: [${interfaces.join(', ')}]}`)
   }
 
-  const code = `${getClassComment(service, s, proto, 6)}
-qx.Class.define('${classNamespace}', {
-  ${initCode.join(',\n  ')},
-  
-  /*
-  *****************************************************************************
-     MEMBERS
-  *****************************************************************************
-  */
-  members: {
-    serviceName: '${proto.pb_package}.${service.name}',
-    ${members.join(',\n')}
-  }
-})
-`
+  let code = template({
+    classComment: getClassComment(service, s, proto, 6),
+    classNamespace: classNamespace,
+    serviceName: `${proto.pb_package}.${service.name}`,
+    initCode: initCode,
+    members: members,
+    lineEnd: lineEnd
+  })
   return {
     namespace: classNamespace,
     code: code

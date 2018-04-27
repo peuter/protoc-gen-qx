@@ -3,6 +3,13 @@ const config = require('../config')
 const baseNamespace = config.get('baseNamespace')
 const typeMap = require('../types')
 const lineEnd = config.get('withoutSemi') ? '' : ';'
+const fs = require('fs')
+const path = require('path')
+const handlebars = require('handlebars')
+const template = handlebars.compile(fs.readFileSync(path.join(__dirname, '..', 'templates', 'MessageClass.js.hbs'), 'utf8'))
+handlebars.registerHelper('curly', function(object, open) {
+  return open ? '{' : '}';
+});
 
 const genTypeClass = (messageType, s, proto) => {
   const properties = []
@@ -14,6 +21,7 @@ const genTypeClass = (messageType, s, proto) => {
   let constructorCode = []
   let oneOfs = []
   let memberCode = []
+  let defers = []
 
   messageType.enumTypeList.forEach(entry => {
     let valueCode = []
@@ -28,7 +36,7 @@ const genTypeClass = (messageType, s, proto) => {
       ${valueCode.join(',\n      ')}
     }`)
   })
-  messageType.oneofDeclList.forEach(prop => {
+  messageType.oneofDeclList.forEach((prop, i) => {
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
     const index = oneOfs.length
     oneOfs.push(Object.assign({
@@ -44,7 +52,7 @@ const genTypeClass = (messageType, s, proto) => {
       }
 
       // reset all other values
-      this.__oneOfs[${index}].forEach(function (prop) {
+      ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
         if (prop !== name) {
           this.reset(prop)${lineEnd}
         }
@@ -65,17 +73,14 @@ const genTypeClass = (messageType, s, proto) => {
           qxType: 'Number',
           pbType: 'Enum',
           emptyComparison: ' !== 0.0',
-          comment: ''
+          comment: []
         }
         if (prop.defaultValue === undefined) {
           // according to protobuf spec enums default value is always 0
           prop.defaultValue = 0
         }
         if (prop.typeName) {
-          prop.comment = `
-    /**
-     * Enum of type {@link ${baseNamespace}${prop.typeName}}
-     */`
+          prop.comment = [`Enum of type {@link ${baseNamespace}${prop.typeName}}`]
         }
       } else if (prop.type === 11) {
         // reference
@@ -90,16 +95,14 @@ const genTypeClass = (messageType, s, proto) => {
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
             msg.set${upperCase}(value)${lineEnd}
             break${lineEnd}`,
-          writerCode: list ? `
-      f = message.get${upperCase}().toArray()${lineEnd}
+          writerCode: list ? `f = message.get${upperCase}().toArray()${lineEnd}
       if (f != null) {
         writer.writeRepeatedMessage(
           ${prop.number},
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }` : `
-      f = message.get${upperCase}()${lineEnd}
+      }` : `f = message.get${upperCase}()${lineEnd}
       if (f != null) {
         writer.writeMessage(
           ${prop.number},
@@ -119,51 +122,50 @@ const genTypeClass = (messageType, s, proto) => {
       // according to protobuf spec enums default value is always 0
       prop.defaultValue = type.defaultValue
     }
-    let additionalPropertyCode = []
+    let propertyDefinition = {
+      comment: prop.comment,
+      name: prop.name,
+      entries: []
+    }
+
+    if (list) {
+      propertyDefinition.comment = [`@type {qx.data.Array} array of {@link ${type.qxType}}`]
+      propertyDefinition.entries = propertyDefinition.entries.concat([
+          {key: 'check', value: `'qx.data.Array'`},
+          {key: 'deferredInit', value: true},
+          {key: 'event', value: `'change${upperCase}'`}
+      ])
+      constructorCode.push(`this.init${upperCase}(new qx.data.Array())${lineEnd}`)
+    } else {
+      propertyDefinition.entries = propertyDefinition.entries.concat([
+        {key: 'check', value: `'${type.qxType}'`},
+        {key: 'init', value: prop.defaultValue !== undefined ? prop.defaultValue : 'null'},
+        {key: 'nullable', value: prop.defaultValue === undefined},
+        {key: 'event', value: `'change${upperCase}'`}
+      ])
+    }
+
     if (prop.hasOwnProperty('oneofIndex') && prop.oneofIndex !== undefined) {
       const oneOf = oneOfs[prop.oneofIndex]
       oneOf.types.push(prop.type)
       oneOf.names.push(prop.name)
-      additionalPropertyCode.push(`,
-      apply: '_applyOneOf${prop.oneofIndex}'`)
+      propertyDefinition.entries.push({key: 'apply', value: `'_applyOneOf${prop.oneofIndex}'`})
     }
 
     if (type.hasOwnProperty('transform')) {
-      additionalPropertyCode.push(`,
-      transform: '${type.transform}'`)
+      propertyDefinition.entries.push({key: 'transform', value: `'${type.transform}'`})
     }
 
     if (prop.options && prop.options.hasOwnProperty('annotations')) {
-      additionalPropertyCode.push(`,
-      "@": ['${prop.options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`)
+      propertyDefinition.entries.push({key: `'@'`, value: `['${prop.options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`})
     }
-
-    if (list) {
-      properties.push(`
-    /**
-     * @type {qx.data.Array} array of {@link ${type.qxType}}
-     */
-    ${prop.name}: {
-      check: 'qx.data.Array',
-      deferredInit: true,
-      event: 'change${upperCase}'${additionalPropertyCode.join('')}
-    }`)
-      constructorCode.push(`this.init${upperCase}(new qx.data.Array())${lineEnd}`)
-    } else {
-      properties.push(`${prop.comment}
-    ${prop.name}: {
-      check: '${type.qxType}',
-      init: ${prop.defaultValue !== undefined ? prop.defaultValue : null},
-      nullable: ${prop.defaultValue === undefined},
-      event: 'change${upperCase}'${additionalPropertyCode.join('')}
-    }`)
-    }
+    properties.push(propertyDefinition)
 
     if (type.writerCode) {
       serializer.push(type.writerCode)
     } else if (type.pbType) {
       if (list) {
-        serializer.push(`      f = message.get${upperCase}()${lineEnd}
+        serializer.push(`f = message.get${upperCase}()${lineEnd}
       if (f${type.emptyComparison}) {
         writer.writeRepeated${type.pbType}(
           ${prop.number},
@@ -171,7 +173,7 @@ const genTypeClass = (messageType, s, proto) => {
         )${lineEnd}
       }`)
       } else {
-        serializer.push(`      f = message.get${upperCase}()${lineEnd}
+        serializer.push(`f = message.get${upperCase}()${lineEnd}
       if (f${type.emptyComparison}) {
         writer.write${type.pbType}(
           ${prop.number},
@@ -208,22 +210,33 @@ const genTypeClass = (messageType, s, proto) => {
       }
     })
     const firstUp = oneOf.name.substring(0, 1).toUpperCase() + oneOf.name.substring(1)
-    // experimental add a shortcut function to generaically set the oneof object
+    // experimental add a shortcut function to generically set the oneof object
     if (complexType) {
       memberCode.push(`
+    /**
+     * Set value for oneOf field '${oneOf.name}'. Tries to detect the object type and call the correct setter.
+     * @param obj {Object}
+     */
     setOneOf${firstUp}: function (obj) {
       var type = obj.basename.toLowerCase()${lineEnd}
-      if (this.__oneOfs[${index}].includes(type)) {
+      if (${classNamespace}.ONEOFS[${index}].includes(type)) {
         this.set(type, obj)${lineEnd}
       } else {
-        throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + this.__oneOfs[${index}].join(', '))${lineEnd}
+        throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + ${classNamespace}.ONEOFS[${index}].join(', '))${lineEnd}
       }
+    }`)
+      statics.push(`    
+    /**
+     * Returns the allowed type for the oneOf field '${oneOf.name}'.
+     * @returns {Array} array of type names as string
+     */
+    getAllowedTypesOf${firstUp}: function () {
+      return this.ONEOFS[${index}]${lineEnd}
     }`)
     }
     const oneofTypeCheck = complexType ? `
       check: '${baseNamespace}.core.BaseMessage',` : ''
-    properties.push(`
-    /**
+    properties.push(`/**
      * oneOfIndex: ${index}
      */
     ${oneOf.name}: {${oneofTypeCheck}
@@ -233,16 +246,14 @@ const genTypeClass = (messageType, s, proto) => {
 
     // write the one of members
     if (index === 0) {
-      memberCode.unshift(`
-    // array with oneOf property groups
-    __oneOfs: null`)
-      constructorCode.push('this.__oneOfs = []' + lineEnd)
+      statics.unshift(`// array with oneOf property groups
+    ONEOFS: []`)
     }
-    constructorCode.push(` this.__oneOfs[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
+    defers.push(`statics.ONEOFS[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
   })
 
   if (deserializer.length) {
-    deserializer = `      msg.setDeserialized(true)${lineEnd}
+    deserializer = `msg.setDeserialized(true)${lineEnd}
       while (reader.nextField()) {
         if (reader.isEndGroup()) {
           break${lineEnd}
@@ -271,94 +282,22 @@ ${deserializer.join('\n')}
   }
 
   if (serializer.length) {
-    serializer[0] = `      var ${serializer[0].trim()}`
+    serializer[0] = `var ${serializer[0].trim()}`
   }
 
-
-  if (constructorCode.length > 0) {
-    // add constructor
-    constructorCode = `
-  /*
-  *****************************************************************************
-     CONSTRUCTOR
-  *****************************************************************************
-  */
-  construct: function (props) {
-    ${constructorCode.join('\n   ')}
-    this.base(arguments, props)${lineEnd}
-  },`
-  }
-
-  if (memberCode.length) {
-    memberCode = `,
-
-  /*
-  *****************************************************************************
-     MEMBERS
-  *****************************************************************************
-  */
-  members: {
-${memberCode.join(',\n')}
-  }
-`
-  }
-
-  const code = `${getClassComment(messageType, s, proto, 4)}
-qx.Class.define('${classNamespace}', {
-  ${initCode.join(',\n  ')},
-${constructorCode}
-
-  /*
-  *****************************************************************************
-     STATICS
-  *****************************************************************************
-  */
-  statics: {
-${statics.length > 0 ? `    ${statics.join(',\n    ')},` : ''}
-    /**
-     * Serializes the given message to binary data (in protobuf wire
-     * format), writing to the given BinaryWriter.
-     * @param message {proto.core.BaseMessage}
-     * @param writer {jspb.BinaryWriter}
-     * @suppress {unusedLocalVariables} f is only used for nested messages
-     */
-    serializeBinaryToWriter: function (message, writer) {
-${serializer.join('\n')}
-    },
-
-    /**
-     * Deserializes binary data (in protobuf wire format).
-     * @param bytes {jspb.ByteSource} The bytes to deserialize.
-     * @return {${classNamespace}}
-     */
-    deserializeBinary: function (bytes) {
-      var reader = new jspb.BinaryReader(bytes)${lineEnd}
-      var msg = new ${classNamespace}()${lineEnd}
-      return ${classNamespace}.deserializeBinaryFromReader(msg, reader)${lineEnd}
-    },
-
-    /**
-     * Deserializes binary data (in protobuf wire format) from the
-     * given reader into the given message object.
-     * @param msg {${classNamespace}} The message object to deserialize into.
-     * @param reader {jspb.BinaryReader} The BinaryReader to use.
-     * @return {${classNamespace}}
-     */
-    deserializeBinaryFromReader: function (msg, reader) {
-${deserializer}
-    }
-  },
-
-  /*
-  *****************************************************************************
-     PROPERTIES
-  *****************************************************************************
-  */
-  properties: {
-${properties.join(',\n')}
-  }${memberCode}
-})
-`
+  const code = template({
+    classComment: getClassComment(messageType, s, proto, 4),
+    classNamespace: classNamespace,
+    initCode: initCode,
+    constructorCode: constructorCode,
+    statics: statics,
+    serializer: serializer,
+    deserializer: deserializer,
+    properties: properties,
+    members: memberCode,
+    defers: defers,
+    lineEnd: lineEnd
+  })
   return {
     namespace: classNamespace,
     code: code

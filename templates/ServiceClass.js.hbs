@@ -1,0 +1,19 @@
+{{&classComment}}
+qx.Class.define('{{classNamespace}}', {
+{{#each initCode}}
+  {{&.}},
+{{/each}}
+
+  /*
+  *****************************************************************************
+     MEMBERS
+  *****************************************************************************
+  */
+  members: {
+    serviceName: '{{serviceName}}',
+{{#each members}}
+
+    {{&.}}{{#unless @last}},{{/unless}}
+{{/each}}
+  }
+}){{lineEnd}}

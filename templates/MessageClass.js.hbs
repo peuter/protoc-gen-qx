@@ -1,0 +1,98 @@
+{{&classComment}}
+qx.Class.define('{{classNamespace}}', {
+{{#each initCode}}
+  {{&.}},
+{{/each}}
+{{#if constructorCode}}
+
+  /*
+  *****************************************************************************
+     CONSTRUCTOR
+  *****************************************************************************
+  */
+  construct: function (props) {
+{{#each constructorCode}}
+    {{&.}}
+{{/each}}
+    this.base(arguments, props){{lineEnd}}
+  },{{/if}}
+
+  /*
+  *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics: {
+{{#each statics}}
+    {{&.}},
+{{/each}}
+    /**
+     * Serializes the given message to binary data (in protobuf wire
+     * format), writing to the given BinaryWriter.
+     * @param message {proto.core.BaseMessage}
+     * @param writer {jspb.BinaryWriter}
+     * @suppress {unusedLocalVariables} f is only used for nested messages
+     */
+    serializeBinaryToWriter: function (message, writer) {
+{{#each serializer}}
+      {{&.}}
+{{/each}}
+    },
+
+    /**
+     * Deserializes binary data (in protobuf wire format).
+     * @param bytes {jspb.ByteSource} The bytes to deserialize.
+     * @return {{curly true}}{{classNamespace}}{{curly}}
+     */
+    deserializeBinary: function (bytes) {
+      var reader = new jspb.BinaryReader(bytes){{lineEnd}}
+      var msg = new {{classNamespace}}(){{lineEnd}}
+      return {{classNamespace}}.deserializeBinaryFromReader(msg, reader){{lineEnd}}
+    },
+
+    /**
+     * Deserializes binary data (in protobuf wire format) from the
+     * given reader into the given message object.
+     * @param msg {{curly true}}{{classNamespace}}{{curly}} The message object to deserialize into.
+     * @param reader {jspb.BinaryReader} The BinaryReader to use.
+     * @return {{curly true}}{{classNamespace}}{{curly}}
+     */
+    deserializeBinaryFromReader: function (msg, reader) {
+      {{&deserializer}}
+    }
+  },
+
+  /*
+  *****************************************************************************
+     PROPERTIES
+  *****************************************************************************
+  */
+  properties: {
+{{#each properties}}{{#if comment}}
+    /**{{#each comment}}
+     * {{&.}}
+    {{/each}}
+     */{{/if}}
+    {{name}}: {
+    {{#each entries}}
+      {{&key}}: {{&value}}{{#unless @last}},{{/unless}}
+    {{/each}}
+    }{{#unless @last}},{{/unless}}
+{{/each}}
+  }{{#if members}},
+
+  /*
+  *****************************************************************************
+     MEMBERS
+  *****************************************************************************
+  */
+  members: {
+    
+  }{{/if}}{{#if defer}},
+
+  defer: function (statics) {
+{{#each defer}}
+    {{&.}}{{#unless @last}},{{/unless}}
+{{/each}}
+  }{{/if}}
+}){{lineEnd}}

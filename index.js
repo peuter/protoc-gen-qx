@@ -9,7 +9,7 @@ const fs = require('fs')
 const path = require('path')
 const config = require('./config')
 const baseNamespace = config.get('baseNamespace')
-const mustache = require('mustache')
+const handlebars = require('handlebars')
 const handlers = {
   serviceList: require('./handlers/service'),
   enumTypeList: require('./handlers/enum'),
@@ -21,11 +21,12 @@ const externalResources = []
 webpackConfig.forEach(config => {
   externalResources.push(`"${baseNamespace}/${config.output.filename}"`)
 })
-
-let baseServiceClass = mustache.render(fs.readFileSync(path.join(__dirname, 'templates', 'BaseService.js.mustache'), 'utf8'), {
+let template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseService.js.hbs'), 'utf8'))
+let baseServiceClass = template({
   baseNamespace: baseNamespace
 })
-let baseMessageClass = mustache.render(fs.readFileSync(path.join(__dirname, 'templates', 'BaseMessage.js.mustache'), 'utf8'), {
+template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseMessage.js.hbs'), 'utf8'))
+let baseMessageClass = template({
   baseNamespace: baseNamespace,
   defer: config.get('skipDepLoadingFallback') === true
     ? ''
