@@ -61,8 +61,8 @@ qx.Class.define('{{classNamespace}}', {
     deserializeBinaryFromReader: function (msg, reader) {
 {{#if deserializer}}      {{&deserializer}}{{/if}}
     }
-  },
-
+  }{{#if properties}},
+  
   /*
   *****************************************************************************
      PROPERTIES
@@ -80,7 +80,7 @@ qx.Class.define('{{classNamespace}}', {
     {{/each}}
     }{{#unless @last}},{{/unless}}
 {{/each}}
-  }{{#if members}},
+  }{{/if}}{{#if members}},
 
   /*
   *****************************************************************************
