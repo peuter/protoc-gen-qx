@@ -42,8 +42,7 @@ const genTypeClass = (messageType, s, proto) => {
     entry.valueList.forEach(enumValue => {
       valueCode.push(`${enumValue.name}: ${enumValue.number}`)
     })
-    statics.push(`
-    /**
+    statics.push(`/**
      * @enum
      */
     ${entry.name}: {
@@ -58,8 +57,7 @@ const genTypeClass = (messageType, s, proto) => {
       names: [],
       event: `change${upperCase}`
     }, prop))
-    memberCode.push(`
-    // oneOf property apply
+    memberCode.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       if (value !== null) {
         this.set${upperCase}(value)${lineEnd}
@@ -232,8 +230,7 @@ const genTypeClass = (messageType, s, proto) => {
     const firstUp = oneOf.name.substring(0, 1).toUpperCase() + oneOf.name.substring(1)
     // experimental add a shortcut function to generically set the oneof object
     if (complexType) {
-      memberCode.push(`
-    /**
+      memberCode.push(`/**
      * Set value for oneOf field '${oneOf.name}'. Tries to detect the object type and call the correct setter.
      * @param obj {Object}
      */
@@ -245,8 +242,7 @@ const genTypeClass = (messageType, s, proto) => {
         throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + ${classNamespace}.ONEOFS[${index}].join(', '))${lineEnd}
       }
     }`)
-      statics.push(`    
-    /**
+      statics.push(`/**
      * Returns the allowed type for the oneOf field '${oneOf.name}'.
      * @returns {Array} array of type names as string
      */

@@ -15,7 +15,8 @@ qx.Class.define('{{classNamespace}}', {
     {{&.}}
 {{/each}}
     this.base(arguments, props){{lineEnd}}
-  },{{/if}}
+  },
+{{/if}}
 
   /*
   *****************************************************************************
@@ -58,7 +59,7 @@ qx.Class.define('{{classNamespace}}', {
      * @return {{curly true}}{{classNamespace}}{{curly}}
      */
     deserializeBinaryFromReader: function (msg, reader) {
-      {{&deserializer}}
+{{#if deserializer}}      {{&deserializer}}{{/if}}
     }
   },
 

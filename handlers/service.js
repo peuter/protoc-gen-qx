@@ -25,7 +25,7 @@ const genServiceClass = (service, s, proto) => {
     members.push(`/**
 ${normalizeComments(findCommentByPath([6, s, 2, r], proto.sourceCodeInfo.locationList), 5)}
 ${paramComments.join('\n')}
-     * @returns {Promise} resolves to {${baseNamespace}${rpc.outputType}} ${rpc.options && rpc.options.deprecated ? '     * @deprecated' : ''}
+     * @returns {Promise} resolves to {${baseNamespace}${rpc.outputType}}${rpc.options && rpc.options.deprecated ? '     * @deprecated' : ''}
      */
     ${rpc.name}: function (payload${callbackParams}) {
       qx.core.Assert.assertInstance(payload, ${baseNamespace}${rpc.inputType})
