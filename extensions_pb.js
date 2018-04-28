@@ -13,6 +13,7 @@ var global = Function('return this')();
 
 var google_protobuf_descriptor_pb = require('google-protobuf/google/protobuf/descriptor_pb.js');
 goog.exportSymbol('proto.qx.annotations', null, global);
+goog.exportSymbol('proto.qx.date', null, global);
 
 /**
  * A tuple of {field number, class constructor} for the extension
@@ -37,5 +38,30 @@ google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[50000] = new jspb.Ex
 // This registers the extension field with the extended class, so that
 // toObject() will function correctly.
 google_protobuf_descriptor_pb.FieldOptions.extensions[50000] = proto.qx.annotations;
+
+
+/**
+ * A tuple of {field number, class constructor} for the extension
+ * field named `date`.
+ * @type {!jspb.ExtensionFieldInfo.<boolean>}
+ */
+proto.qx.date = new jspb.ExtensionFieldInfo(
+    50001,
+    {date: 0},
+    null,
+     /** @type {?function((boolean|undefined),!jspb.Message=): !Object} */ (
+         null),
+    0);
+
+google_protobuf_descriptor_pb.FieldOptions.extensionsBinary[50001] = new jspb.ExtensionFieldBinaryInfo(
+    proto.qx.date,
+    jspb.BinaryReader.prototype.readBool,
+    jspb.BinaryWriter.prototype.writeBool,
+    undefined,
+    undefined,
+    false);
+// This registers the extension field with the extended class, so that
+// toObject() will function correctly.
+google_protobuf_descriptor_pb.FieldOptions.extensions[50001] = proto.qx.date;
 
 goog.object.extend(exports, proto.qx);

@@ -11,6 +11,20 @@ handlebars.registerHelper('curly', function(object, open) {
   return open ? '{' : '}';
 });
 
+function setPropEntry(def, key, value) {
+  let exists = false
+  def.some(entry => {
+    if (entry.key === key) {
+      exists = true
+      entry.value = value
+      return true
+    }
+  })
+  if (!exists) {
+    def.push({key: key, value: value})
+  }
+}
+
 const genTypeClass = (messageType, s, proto) => {
   const properties = []
   const classNamespace = getClassNamespace(messageType, proto)
@@ -156,8 +170,14 @@ const genTypeClass = (messageType, s, proto) => {
       propertyDefinition.entries.push({key: 'transform', value: `'${type.transform}'`})
     }
 
-    if (prop.options && prop.options.hasOwnProperty('annotations')) {
-      propertyDefinition.entries.push({key: `'@'`, value: `['${prop.options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`})
+    if (prop.options) {
+      if (prop.options.hasOwnProperty('annotations')) {
+        propertyDefinition.entries.push({key: `'@'`, value: `['${prop.options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`})
+      }
+      if (prop.options.hasOwnProperty('date') && prop.options.date === true) {
+        setPropEntry(propertyDefinition.entries, 'transform', `'_toDate'`)
+        setPropEntry(propertyDefinition.entries, 'check', `'Date'`)
+      }
     }
     properties.push(propertyDefinition)
 
@@ -244,7 +264,7 @@ const genTypeClass = (messageType, s, proto) => {
       ]
     }
     if (complexType) {
-      propDef.entries.unshift({key: 'check', value: `${baseNamespace}.core.BaseMessage`})
+      propDef.entries.unshift({key: 'check', value: `'${baseNamespace}.core.BaseMessage'`})
     }
     properties.push(propDef)
 

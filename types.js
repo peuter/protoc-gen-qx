@@ -9,8 +9,8 @@ module.exports = {
     qxType: 'String',
     pbType: 'Uint64String',
     transform: '_toString',
-    emptyComparison: ' !== 0',
-    defaultValue: 0
+    emptyComparison: '.length > 0',
+    defaultValue: '\'\''
   },
   5: {
     qxType: 'Integer',

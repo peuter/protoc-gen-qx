@@ -72,6 +72,17 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      */
     _toString: function (value) {
       return '' + value
+    },
+
+    /**
+     * Transforms a string to a Date object.
+     * @protected
+     */
+    _toDate: function (value) {
+      if (qx.lang.Type.isString(value)) {
+        return new Date(value)
+      }
+      return value
     }
   }{{&defer}}
 })

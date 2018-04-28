@@ -4,4 +4,5 @@ package qx;
 
 extend google.protobuf.FieldOptions {
     string annotations = 50000;
+    bool date = 50001;
 }
