@@ -60,7 +60,7 @@ const genTypeClass = (messageType, s, proto) => {
     memberCode.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       if (value !== null) {
-        this.set${upperCase}(value)${lineEnd}
+        this.set${upperCase}(value.basename.toLowerCase())${lineEnd}
       }
 
       // reset all other values
@@ -261,6 +261,17 @@ const genTypeClass = (messageType, s, proto) => {
     }`)
     }
 
+    memberCode.push(`/**
+     * Get value for oneOf field '${oneOf.name}'.
+     * @returns {var}
+     */
+    getOneOf${firstUp}: function () {
+      if (this.get${firstUp}()) {
+        return this.get(this.get${firstUp}())${lineEnd}
+      }
+      return null${lineEnd}
+    }`)
+
     const propDef = {
       comment: [`oneOfIndex: ${index}`],
       name: oneOf.name,
@@ -269,9 +280,7 @@ const genTypeClass = (messageType, s, proto) => {
         {key: 'event', value: `'${oneOf.event}'`}
       ]
     }
-    if (complexType) {
-      propDef.entries.unshift({key: 'check', value: `'${baseNamespace}.core.BaseMessage'`})
-    }
+    propDef.entries.unshift({key: 'check', value: `['${oneOf.names.join('\', \'')}']`})
     properties.push(propDef)
 
     // write the one of members
