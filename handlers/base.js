@@ -12,7 +12,10 @@ ${normalizeComments(findCommentByPath([commentPos, s], proto.sourceCodeInfo.loca
  */`
 }
 
-const getClassNamespace = (item, proto) => {
+const getClassNamespace = (item, proto, relNamespace) => {
+  if (relNamespace) {
+    return `${relNamespace}.${item.name}`
+  }
   return `${baseNamespace}.${proto.pb_package}.${item.name}`
 }
 

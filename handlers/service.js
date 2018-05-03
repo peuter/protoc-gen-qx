@@ -61,10 +61,10 @@ ${paramComments.join('\n')}
     members: members,
     lineEnd: lineEnd
   })
-  return {
+  return [{
     namespace: classNamespace,
     code: code
-  }
+  }]
 }
 
 module.exports = genServiceClass

@@ -21,10 +21,10 @@ ${statics.join(',\n')}
   }
 })
 `
-  return {
+  return [{
     namespace: classNamespace,
     code: code
-  }
+  }]
 }
 
 module.exports = genEnumClass

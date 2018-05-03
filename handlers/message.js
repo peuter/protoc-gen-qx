@@ -25,9 +25,9 @@ function setPropEntry(def, key, value) {
   }
 }
 
-const genTypeClass = (messageType, s, proto) => {
+const genTypeClass = (messageType, s, proto, relNamespace) => {
   const properties = []
-  const classNamespace = getClassNamespace(messageType, proto)
+  const classNamespace = getClassNamespace(messageType, proto, relNamespace)
 
   let serializer = []
   let deserializer = []
@@ -336,10 +336,18 @@ ${deserializer.join('\n')}
     defers: defers,
     lineEnd: lineEnd
   })
-  return {
+
+  let result = [{
     namespace: classNamespace,
     code: code
-  }
+  }]
+
+  // nested types
+  messageType.nestedTypeList.forEach(nestedEntry => {
+    result = result.concat(genTypeClass(nestedEntry, s, proto, classNamespace))
+  })
+
+  return result
 }
 
 module.exports = genTypeClass
