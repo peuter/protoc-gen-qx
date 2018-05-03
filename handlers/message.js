@@ -59,10 +59,8 @@ const genTypeClass = (messageType, s, proto) => {
     }, prop))
     memberCode.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
-      if (value !== null) {
-        this.set${upperCase}(value.basename.toLowerCase())${lineEnd}
-      }
-
+      this.set${upperCase}(name)${lineEnd}
+      
       // reset all other values
       ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
         if (prop !== name) {
@@ -99,6 +97,7 @@ const genTypeClass = (messageType, s, proto) => {
         // reference
         let qxType = baseNamespace + prop.typeName
         if (prop.typeName === '.google.protobuf.Timestamp') {
+          config.set('timestampSupport', true)
           qxType = 'Date'
           writerTransform = `
       f = new ${baseNamespace}${prop.typeName}({seconds: '' + Math.round(f.getTime()/1000), nanos: (f.getTime() - Math.round(f.getTime()/1000) * 1000000)})${lineEnd}`
@@ -242,7 +241,7 @@ const genTypeClass = (messageType, s, proto) => {
     if (complexType) {
       memberCode.push(`/**
      * Set value for oneOf field '${oneOf.name}'. Tries to detect the object type and call the correct setter.
-     * @param obj {Object}
+     * @param obj {var}
      */
     setOneOf${firstUp}: function (obj) {
       var type = obj.basename.toLowerCase()${lineEnd}

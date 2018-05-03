@@ -83,7 +83,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
         return new Date(value){{lineEnd}}
       }
       return value{{lineEnd}}
-    },
+    }{{#timestampSupport}},
 
     /**
      * Transforms a proto.google.protobuf.Timestamp object to a Date object
@@ -96,6 +96,6 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
         return new Date(parseInt(value.getSeconds(), 10) * 1000 + Math.round(parseInt(value.getNanos(), 10)/1000000)){{lineEnd}}
       }
       return value{{lineEnd}}
-    }
+    }{{/timestampSupport}}
   }{{&defer}}
 }){{lineEnd}}
