@@ -77,6 +77,7 @@ const genTypeClass = (messageType, s, proto) => {
     const list = prop.label === 3
     prop.comment = ''
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
+    let writerTransform = ''
     if (!type && prop.typeName) {
       // reference to another proto message
       if (prop.type === 14) {
@@ -96,8 +97,14 @@ const genTypeClass = (messageType, s, proto) => {
         }
       } else if (prop.type === 11) {
         // reference
+        let qxType = baseNamespace + prop.typeName
+        if (prop.typeName === '.google.protobuf.Timestamp') {
+          qxType = 'Date'
+          writerTransform = `
+      f = new ${baseNamespace}${prop.typeName}({seconds: '' + Math.round(f.getTime()/1000), nanos: (f.getTime() - Math.round(f.getTime()/1000) * 1000000)})${lineEnd}`
+        }
         type = {
-          qxType: `${baseNamespace}${prop.typeName}`,
+          qxType: `${qxType}`,
           readerCode: list ? `          case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
@@ -114,7 +121,7 @@ const genTypeClass = (messageType, s, proto) => {
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }` : `f = message.get${upperCase}()${lineEnd}
+      }` : `f = message.get${upperCase}()${lineEnd}${writerTransform}
       if (f != null) {
         writer.writeMessage(
           ${prop.number},
@@ -123,6 +130,9 @@ const genTypeClass = (messageType, s, proto) => {
         )${lineEnd}
       }`,
           emptyComparison: ' !== null'
+        }
+        if (prop.typeName === '.google.protobuf.Timestamp') {
+          type.transform = '_transformTimestampToDate'
         }
       }
     }

@@ -5,15 +5,22 @@ module.exports = {
     emptyComparison: ' != null',
     defaultValue: 0
   },
+  3: {
+    qxType: 'String',
+    pbType: 'Int64String',
+    transform: '_toString',
+    emptyComparison: '.length > 0',
+    defaultValue: '\'0\''
+  },
   4: {
     qxType: 'String',
     pbType: 'Uint64String',
     transform: '_toString',
     emptyComparison: '.length > 0',
-    defaultValue: '\'\''
+    defaultValue: '\'0\''
   },
   5: {
-    qxType: 'Integer',
+    qxType: 'Number',
     pbType: 'Int32',
     emptyComparison: ' != null',
     defaultValue: 0

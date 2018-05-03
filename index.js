@@ -15,6 +15,7 @@ const handlers = {
   enumTypeList: require('./handlers/enum'),
   messageTypeList: require('./handlers/message')
 }
+const lineEnd = config.get('withoutSemi') ? '' : ';'
 
 const webpackConfig = require('./webpack.config')
 const externalResources = []
@@ -23,11 +24,13 @@ webpackConfig.forEach(config => {
 })
 let template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseService.js.hbs'), 'utf8'))
 let baseServiceClass = template({
-  baseNamespace: baseNamespace
+  baseNamespace: baseNamespace,
+  lineEnd: lineEnd
 })
 template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseMessage.js.hbs'), 'utf8'))
 let baseMessageClass = template({
   baseNamespace: baseNamespace,
+  lineEnd: lineEnd,
   defer: config.get('skipDepLoadingFallback') === true
     ? ''
     : `,
