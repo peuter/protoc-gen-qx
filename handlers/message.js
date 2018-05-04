@@ -61,10 +61,8 @@ const genTypeClass = (messageType, s, proto) => {
     }, prop))
     memberCode.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
-      if (value !== null) {
-        this.set${upperCase}(value)${lineEnd}
-      }
-
+      this.set${upperCase}(name)${lineEnd}
+      
       // reset all other values
       ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
         if (prop !== name) {
@@ -79,6 +77,7 @@ const genTypeClass = (messageType, s, proto) => {
     const list = prop.label === 3
     prop.comment = ''
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
+    let writerTransform = ''
     if (!type && prop.typeName) {
       // reference to another proto message
       if (prop.type === 14) {
@@ -98,8 +97,15 @@ const genTypeClass = (messageType, s, proto) => {
         }
       } else if (prop.type === 11) {
         // reference
+        let qxType = baseNamespace + prop.typeName
+        if (prop.typeName === '.google.protobuf.Timestamp') {
+          config.set('timestampSupport', true)
+          qxType = 'Date'
+          writerTransform = `
+      f = new ${baseNamespace}${prop.typeName}({seconds: '' + Math.round(f.getTime()/1000), nanos: (f.getTime() - Math.round(f.getTime()/1000) * 1000000)})${lineEnd}`
+        }
         type = {
-          qxType: `${baseNamespace}${prop.typeName}`,
+          qxType: `${qxType}`,
           readerCode: list ? `          case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
@@ -116,7 +122,7 @@ const genTypeClass = (messageType, s, proto) => {
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }` : `f = message.get${upperCase}()${lineEnd}
+      }` : `f = message.get${upperCase}()${lineEnd}${writerTransform}
       if (f != null) {
         writer.writeMessage(
           ${prop.number},
@@ -125,6 +131,9 @@ const genTypeClass = (messageType, s, proto) => {
         )${lineEnd}
       }`,
           emptyComparison: ' !== null'
+        }
+        if (prop.typeName === '.google.protobuf.Timestamp') {
+          type.transform = '_transformTimestampToDate'
         }
       }
     }
@@ -234,7 +243,7 @@ const genTypeClass = (messageType, s, proto) => {
     if (complexType) {
       memberCode.push(`/**
      * Set value for oneOf field '${oneOf.name}'. Tries to detect the object type and call the correct setter.
-     * @param obj {Object}
+     * @param obj {var}
      */
     setOneOf${firstUp}: function (obj) {
       var type = obj.basename.toLowerCase()${lineEnd}
@@ -253,6 +262,17 @@ const genTypeClass = (messageType, s, proto) => {
     }`)
     }
 
+    memberCode.push(`/**
+     * Get value for oneOf field '${oneOf.name}'.
+     * @returns {var}
+     */
+    getOneOf${firstUp}: function () {
+      if (this.get${firstUp}()) {
+        return this.get(this.get${firstUp}())${lineEnd}
+      }
+      return null${lineEnd}
+    }`)
+
     const propDef = {
       comment: [`oneOfIndex: ${index}`],
       name: oneOf.name,
@@ -261,9 +281,7 @@ const genTypeClass = (messageType, s, proto) => {
         {key: 'event', value: `'${oneOf.event}'`}
       ]
     }
-    if (complexType) {
-      propDef.entries.unshift({key: 'check', value: `'${baseNamespace}.core.BaseMessage'`})
-    }
+    propDef.entries.unshift({key: 'check', value: `['${oneOf.names.join('\', \'')}']`})
     properties.push(propDef)
 
     // write the one of members

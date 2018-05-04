@@ -83,6 +83,10 @@ class Config {
     return null
   }
 
+  set (option, value) {
+    this._config[option] = value
+  }
+
   getExtend (option, identifier) {
     let extend = this.get(option, identifier, 'extend')
     if (extend) {

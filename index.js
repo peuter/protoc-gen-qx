@@ -15,6 +15,7 @@ const handlers = {
   enumTypeList: require('./handlers/enum'),
   messageTypeList: require('./handlers/message')
 }
+const lineEnd = config.get('withoutSemi') ? '' : ';'
 
 const webpackConfig = require('./webpack.config')
 const externalResources = []
@@ -23,29 +24,8 @@ webpackConfig.forEach(config => {
 })
 let template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseService.js.hbs'), 'utf8'))
 let baseServiceClass = template({
-  baseNamespace: baseNamespace
-})
-template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseMessage.js.hbs'), 'utf8'))
-let baseMessageClass = template({
   baseNamespace: baseNamespace,
-  defer: config.get('skipDepLoadingFallback') === true
-    ? ''
-    : `,
-
-  defer: function (statics) {
-    if (!window.grpc) {
-      // load dependencies
-      var dynLoader = new qx.util.DynamicScriptLoader([
-        qx.util.ResourceManager.getInstance().toUri(${externalResources.join('),\n      qx.util.ResourceManager.getInstance().toUri(')})
-      ]);
-   
-      qx.bom.Lifecycle.onReady(function () {
-        dynLoader.start().catch(function (err) {
-          qx.log.Logger.error(statics, 'failed to load scripts', err);
-        });
-      }, this);
-    }
-  }`
+  lineEnd: lineEnd
 })
 
 require(__dirname + '/extensions_pb')
@@ -90,9 +70,6 @@ CodeGeneratorRequest()
       name: `source/class/${baseNamespace}/core/BaseService.js`,
       content: baseServiceClass
     }, {
-      name: `source/class/${baseNamespace}/core/BaseMessage.js`,
-      content: baseMessageClass
-    }, {
       name: 'Manifest.json',
       content: `{
   "info": {},
@@ -127,6 +104,36 @@ CodeGeneratorRequest()
           })
         }
       })
+    })
+
+    template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseMessage.js.hbs'), 'utf8'))
+    let baseMessageClass = template({
+      baseNamespace: baseNamespace,
+      lineEnd: lineEnd,
+      timestampSupport: !!config.get('timestampSupport'),
+      defer: config.get('skipDepLoadingFallback') === true
+        ? ''
+        : `,
+
+  defer: function (statics) {
+    if (!window.grpc) {
+      // load dependencies
+      var dynLoader = new qx.util.DynamicScriptLoader([
+        qx.util.ResourceManager.getInstance().toUri(${externalResources.join('),\n      qx.util.ResourceManager.getInstance().toUri(')})
+      ]);
+   
+      qx.bom.Lifecycle.onReady(function () {
+        dynLoader.start().catch(function (err) {
+          qx.log.Logger.error(statics, 'failed to load scripts', err);
+        });
+      }, this);
+    }
+  }`
+    })
+
+    files.push({
+      name: `source/class/${baseNamespace}/core/BaseMessage.js`,
+      content: baseMessageClass
     })
 
     if (parameters.skipDeps !== true) {

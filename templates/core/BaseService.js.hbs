@@ -8,11 +8,11 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
   *****************************************************************************
   */
   construct: function (url, metadata) {
-    this.base(arguments);
-    this.setUrl(url);
+    this.base(arguments){{lineEnd}}
+    this.setUrl(url){{lineEnd}}
 
     if (metadata) {
-      this.setMetadata(metadata);
+      this.setMetadata(metadata){{lineEnd}}
     }
   },
 
@@ -44,62 +44,61 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
 
     _applyMetadata: function (value) {
       if (value) {
-        this.__metadata = new grpc.Metadata(value)
+        this.__metadata = new grpc.Metadata(value){{lineEnd}}
       } else {
-        this.__metadata = null;
+        this.__metadata = null{{lineEnd}}
       }
     },
 
     _call: function (payload, serviceDefinition) {
-      var args = qx.lang.Array.fromArguments(arguments, 2);
+      var args = qx.lang.Array.fromArguments(arguments, 2){{lineEnd}}
       var config = {
         request: payload,
         host: this.getUrl(),
         metadata: this.__metadata
         // debug: qx.core.Environment.get('qx.debug')
-      };
+      }{{lineEnd}}
       return new qx.Promise(function (resolve, reject) {
         if (serviceDefinition.responseStream === true) {
           // streaming response
-          var context = null;
-          var callback;
+          var context = null{{lineEnd}}
+          var callback{{lineEnd}}
           if (typeof args[args.length - 1] === 'object') {
-            context = args.pop();
+            context = args.pop(){{lineEnd}}
           }
           if (typeof args[args.length - 1] === 'function') {
-            callback = args.pop();
-          }
-          else {
-            throw Error('no callback defined');
+            callback = args.pop(){{lineEnd}}
+          } else {
+            throw Error('no callback defined'){{lineEnd}}
           }
           if (config.request === callback) {
-            throw Error('no payload defined');
+            throw Error('no payload defined'){{lineEnd}}
           }
           grpc.invoke(serviceDefinition, Object.assign(config, {
             onMessage: callback.bind(context),
             onEnd: function (code, message, trailers) {
               if (code !== grpc.Code.OK) {
-                reject(new Error(message));
+                reject(new Error(message)){{lineEnd}}
               }
               else {
-                resolve(message);
+                resolve(message){{lineEnd}}
               }
             }
-          }));
+          })){{lineEnd}}
         }
         else {
           grpc.unary(serviceDefinition, Object.assign(config, {
             onEnd: function (res) {
               if (res.status !== grpc.Code.OK) {
-                reject(new Error(res.statusMessage));
+                reject(new Error(res.statusMessage)){{lineEnd}}
               }
               else {
-                resolve(res.message);
+                resolve(res.message){{lineEnd}}
               }
             }
-          }));
+          })){{lineEnd}}
         }
-      }, this);
+      }, this){{lineEnd}}
     }
   }
-})
+}){{lineEnd}}

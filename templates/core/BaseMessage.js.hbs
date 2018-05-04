@@ -11,9 +11,9 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
   *****************************************************************************
   */
   construct: function (props) {
-    this.base(arguments);
+    this.base(arguments){{lineEnd}}
     if (props) {
-      this.set(props);
+      this.set(props){{lineEnd}}
     }
   },
 
@@ -49,11 +49,11 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      * @returns {!Object}
      */
     toObject: function (opt_includeInstance) {
-      var obj = qx.util.Serializer.toNativeObject(this);
+      var obj = qx.util.Serializer.toNativeObject(this){{lineEnd}}
       if (opt_includeInstance === true) {
-        obj.$jspbMessageInstance = this;
+        obj.$jspbMessageInstance = this{{lineEnd}}
       }
-      return obj;
+      return obj{{lineEnd}}
     },
 
     /**
@@ -61,9 +61,9 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      * @returns {Uint8Array}
      */
     serializeBinary: function () {
-      var writer = new jspb.BinaryWriter();
-      this.constructor.serializeBinaryToWriter(this, writer);
-      return writer.getResultBuffer();
+      var writer = new jspb.BinaryWriter(){{lineEnd}}
+      this.constructor.serializeBinaryToWriter(this, writer){{lineEnd}}
+      return writer.getResultBuffer(){{lineEnd}}
     },
 
     /**
@@ -71,7 +71,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      * @protected
      */
     _toString: function (value) {
-      return '' + value
+      return '' + value{{lineEnd}}
     },
 
     /**
@@ -80,9 +80,22 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      */
     _toDate: function (value) {
       if (qx.lang.Type.isString(value)) {
-        return new Date(value)
+        return new Date(value){{lineEnd}}
       }
-      return value
-    }
+      return value{{lineEnd}}
+    }{{#timestampSupport}},
+
+    /**
+     * Transforms a proto.google.protobuf.Timestamp object to a Date object
+     * @param value {proto.google.protobuf.Timestamp}
+     * @returns {Date}
+     * @protected
+     */
+    _transformTimestampToDate: function (value) {
+      if (value instanceof proto.google.protobuf.Timestamp) {
+        return new Date(parseInt(value.getSeconds(), 10) * 1000 + Math.round(parseInt(value.getNanos(), 10)/1000000)){{lineEnd}}
+      }
+      return value{{lineEnd}}
+    }{{/timestampSupport}}
   }{{&defer}}
-})
+}){{lineEnd}}
