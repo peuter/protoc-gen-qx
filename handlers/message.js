@@ -11,6 +11,8 @@ handlebars.registerHelper('curly', function(object, open) {
   return open ? '{' : '}';
 });
 
+const arrayClass = config.get('repeatedClass')
+
 function setPropEntry(def, key, value) {
   let exists = false
   def.some(entry => {
@@ -141,13 +143,13 @@ const genTypeClass = (messageType, s, proto) => {
     }
 
     if (list) {
-      propertyDefinition.comment = [`@type {qx.data.Array} array of {@link ${type.qxType}}`]
+      propertyDefinition.comment = [`@type {${arrayClass}} array of {@link ${type.qxType}}`]
       propertyDefinition.entries = propertyDefinition.entries.concat([
-          {key: 'check', value: `'qx.data.Array'`},
+          {key: 'check', value: `'${arrayClass}'`},
           {key: 'deferredInit', value: true},
           {key: 'event', value: `'change${upperCase}'`}
       ])
-      constructorCode.push(`this.init${upperCase}(new qx.data.Array())${lineEnd}`)
+      constructorCode.push(`this.init${upperCase}(new ${arrayClass}())${lineEnd}`)
     } else {
       propertyDefinition.entries = propertyDefinition.entries.concat([
         {key: 'check', value: `'${type.qxType}'`},
