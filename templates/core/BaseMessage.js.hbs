@@ -71,6 +71,12 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      * @protected
      */
     _toString: function (value) {
+      if (qx.lang.Type.isArray(value)) {
+        value = value.map(function (entry) {
+          return '' + entry{{lineEnd}}
+        })
+        return value{{lineEnd}}
+      }
       return '' + value{{lineEnd}}
     },
 

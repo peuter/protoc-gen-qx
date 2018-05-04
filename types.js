@@ -2,33 +2,33 @@ module.exports = {
   2: {
     qxType: 'Number',
     pbType: 'Float',
-    emptyComparison: ' != null',
+    emptyComparison: ' !== null',
     defaultValue: 0
   },
   3: {
     qxType: 'String',
     pbType: 'Int64String',
     transform: '_toString',
-    emptyComparison: '.length > 0',
+    emptyComparison: ' !== \'0\'',
     defaultValue: '\'0\''
   },
   4: {
     qxType: 'String',
     pbType: 'Uint64String',
     transform: '_toString',
-    emptyComparison: '.length > 0',
+    emptyComparison: ' !== \'0\'',
     defaultValue: '\'0\''
   },
   5: {
     qxType: 'Number',
     pbType: 'Int32',
-    emptyComparison: ' != null',
+    emptyComparison: ' !== 0',
     defaultValue: 0
   },
   8: {
     qxType: 'Boolean',
     pbType: 'Bool',
-    emptyComparison: ' != null',
+    emptyComparison: ' !== false',
     defaultValue: false
   },
   9: {
