@@ -9,15 +9,15 @@ module.exports = {
     qxType: 'String',
     pbType: 'Int64String',
     transform: '_toString',
-    emptyComparison: ' !== \'0\'',
-    defaultValue: '\'0\''
+    emptyComparison: '.length > 0',
+    defaultValue: '\'\''
   },
   4: {
     qxType: 'String',
     pbType: 'Uint64String',
     transform: '_toString',
-    emptyComparison: ' !== \'0\'',
-    defaultValue: '\'0\''
+    emptyComparison: '.length > 0',
+    defaultValue: '\'\''
   },
   5: {
     qxType: 'Number',
