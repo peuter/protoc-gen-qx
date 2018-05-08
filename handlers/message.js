@@ -212,7 +212,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         setPropEntry(propertyDefinition.entries, 'nullable', `true`)
         if (prop.options && prop.options.hasOwnProperty('date') && prop.options.date === true) {
           writerTransform = `
-      f = f instanceof Date ? Math.round(f.getTime() / 1000) : '0'${lineEnd}`
+      f = f instanceof Date ? Math.round(f.getTime() / 1000) : ''${lineEnd}`
         }
       }
     }
