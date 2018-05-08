@@ -85,6 +85,9 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      * @protected
      */
     _toDate: function (value) {
+      if (!value) {
+        return null;
+      }
       if (qx.lang.Type.isString(value)) {
         return new Date(value){{lineEnd}}
       }
