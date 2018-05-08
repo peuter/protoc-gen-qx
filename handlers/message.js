@@ -27,9 +27,9 @@ function setPropEntry(def, key, value) {
   }
 }
 
-const genTypeClass = (messageType, s, proto) => {
+const genTypeClass = (messageType, s, proto, relNamespace) => {
   const properties = []
-  const classNamespace = getClassNamespace(messageType, proto)
+  const classNamespace = getClassNamespace(messageType, proto, relNamespace)
 
   let serializer = []
   let deserializer = []
@@ -38,6 +38,7 @@ const genTypeClass = (messageType, s, proto) => {
   let oneOfs = []
   let memberCode = []
   let defers = []
+  let requirements = []
 
   messageType.enumTypeList.forEach(entry => {
     let valueCode = []
@@ -97,6 +98,15 @@ const genTypeClass = (messageType, s, proto) => {
         }
       } else if (prop.type === 11) {
         // reference
+
+        // check if reference is to a nestedType
+        const completeType = `${baseNamespace}${prop.typeName}`
+        if (completeType.startsWith(classNamespace)) {
+          const className = classNamespace.split('.').pop()
+          prop.typeName = prop.typeName.replace(`.${className}.`, `.${className.substring(0, 1).toLowerCase()}${className.substring(1)}.`)
+          // add to requirements
+          requirements.push(`@require(${baseNamespace}${prop.typeName})`)
+        }
         let qxType = baseNamespace + prop.typeName
         if (prop.typeName === '.google.protobuf.Timestamp') {
           config.set('timestampSupport', true)
@@ -186,6 +196,12 @@ const genTypeClass = (messageType, s, proto) => {
       if (prop.options.hasOwnProperty('date') && prop.options.date === true) {
         setPropEntry(propertyDefinition.entries, 'transform', `'_toDate'`)
         setPropEntry(propertyDefinition.entries, 'check', `'Date'`)
+        setPropEntry(propertyDefinition.entries, 'init', `null`)
+        setPropEntry(propertyDefinition.entries, 'nullable', `true`)
+        if (prop.options && prop.options.hasOwnProperty('date') && prop.options.date === true) {
+          writerTransform = `
+      f = f instanceof Date ? Math.round(f.getTime() / 1000) : '0'${lineEnd}`
+        }
       }
     }
     properties.push(propertyDefinition)
@@ -202,7 +218,7 @@ const genTypeClass = (messageType, s, proto) => {
         )${lineEnd}
       }`)
       } else {
-        serializer.push(`f = message.get${upperCase}()${lineEnd}
+        serializer.push(`f = message.get${upperCase}()${lineEnd}${writerTransform}
       if (f${type.emptyComparison}) {
         writer.write${type.pbType}(
           ${prop.number},
@@ -326,7 +342,7 @@ ${deserializer.join('\n')}
   }
 
   const code = template({
-    classComment: getClassComment(messageType, s, proto, 4),
+    classComment: getClassComment(messageType, s, proto, 4, requirements),
     classNamespace: classNamespace,
     initCode: initCode,
     constructorCode: constructorCode,
@@ -338,10 +354,22 @@ ${deserializer.join('\n')}
     defers: defers,
     lineEnd: lineEnd
   })
-  return {
+
+  let result = [{
     namespace: classNamespace,
     code: code
-  }
+  }]
+
+  // nested types
+  messageType.nestedTypeList.forEach(nestedEntry => {
+    // lowercase class name to avoid overriding class
+    let parts = classNamespace.split('.')
+    let className = parts.pop()
+    const subpackage = parts.join('.') + '.' + className.substring(0, 1).toLowerCase() + className.substring(1)
+    result = result.concat(genTypeClass(nestedEntry, s, proto, subpackage))
+  })
+
+  return result
 }
 
 module.exports = genTypeClass

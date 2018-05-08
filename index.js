@@ -96,10 +96,11 @@ CodeGeneratorRequest()
       Object.keys(handlers).forEach( propName => {
         if (proto[propName]) {
           proto[propName].forEach((item, s) => {
-            const {namespace, code} = handlers[propName](item, s, proto)
-            files.push({
-              name: `source/class/${namespace.split('.').join('/')}.js`,
-              content: code
+            handlers[propName](item, s, proto).forEach(entry => {
+              files.push({
+                name: `source/class/${entry.namespace.split('.').join('/')}.js`,
+                content: entry.code
+              })
             })
           })
         }
