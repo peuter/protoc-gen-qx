@@ -1,0 +1,203 @@
+
+/**
+ * `Any` contains an arbitrary serialized protocol buffer message along with a
+ * URL that describes the type of the serialized message.
+ * 
+ * Protobuf library provides support to pack/unpack Any values in the form
+ * of utility functions or additional generated methods of the Any type.
+ * 
+ * Example 1: Pack and unpack a message in C++.
+ * 
+ * Foo foo = ...;
+ * Any any;
+ * any.PackFrom(foo);
+ * ...
+ * if (any.UnpackTo(&foo)) {
+ * ...
+ * }
+ * 
+ * Example 2: Pack and unpack a message in Java.
+ * 
+ * Foo foo = ...;
+ * Any any = Any.pack(foo);
+ * ...
+ * if (any.is(Foo.class)) {
+ * foo = any.unpack(Foo.class);
+ * }
+ * 
+ * Example 3: Pack and unpack a message in Python.
+ * 
+ * foo = Foo(...)
+ * any = Any()
+ * any.Pack(foo)
+ * ...
+ * if any.Is(Foo.DESCRIPTOR):
+ * any.Unpack(foo)
+ * ...
+ * 
+ * Example 4: Pack and unpack a message in Go
+ * 
+ * foo := &pb.Foo{...}
+ * any, err := ptypes.MarshalAny(foo)
+ * ...
+ * foo := &pb.Foo{}
+ * if err := ptypes.UnmarshalAny(any, foo); err != nil {
+ * ...
+ * }
+ * 
+ * The pack methods provided by protobuf library will by default use
+ * 'type.googleapis.com/full.type.name' as the type URL and the unpack
+ * methods only use the fully qualified type name after the last '/'
+ * in the type URL, for example "foo.bar.com/x/y.z" will yield type
+ * name "y.z".
+ * 
+ * 
+ * JSON
+ * ====
+ * The JSON representation of an `Any` value uses the regular
+ * representation of the deserialized, embedded message, with an
+ * additional field `@type` which contains the type URL. Example:
+ * 
+ * package google.profile;
+ * message Person {
+ * string first_name = 1;
+ * string last_name = 2;
+ * }
+ * 
+ * {
+ * "@type": "type.googleapis.com/google.profile.Person",
+ * "firstName": <string>,
+ * "lastName": <string>
+ * }
+ * 
+ * If the embedded message type is well-known and has a custom JSON
+ * representation, that representation will be embedded adding a field
+ * `value` which holds the custom JSON in addition to the `@type`
+ * field. Example (for message [google.protobuf.Duration][]):
+ * 
+ * {
+ * "@type": "type.googleapis.com/google.protobuf.Duration",
+ * "value": "1.212s"
+ * }
+ * Any class generated from protobuf definition "protos/google/protobuf/any.proto".
+ * auto-generated code PLEASE DO NOT EDIT!
+ * 
+ */
+qx.Class.define('{{baseNamespace}}.google.protobuf.Any', {
+  extend: {{baseNamespace}}.core.BaseMessage,
+
+  /*
+  *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics: {
+    /**
+     * Serializes the given message to binary data (in protobuf wire
+     * format), writing to the given BinaryWriter.
+     * @param message {proto.core.BaseMessage}
+     * @param writer {jspb.BinaryWriter}
+     * @suppress {unusedLocalVariables} f is only used for nested messages
+     */
+    serializeBinaryToWriter: function (message, writer) {
+      var f = message.getType_url()
+
+      if (f.length > 0) {
+        writer.writeString(
+          1,
+          f
+        )
+      }
+      f = message.getValue()
+      if (f !== 0) {
+        writer.writeBytes(
+          2,
+          f.serializeBinary()
+        )
+      }
+    },
+
+    /**
+     * Deserializes binary data (in protobuf wire format).
+     * @param bytes {jspb.ByteSource} The bytes to deserialize.
+     * @return {proto.google.protobuf.Any}
+     */
+    deserializeBinary: function (bytes) {
+      var reader = new jspb.BinaryReader(bytes)
+      var msg = new {{baseNamespace}}.google.protobuf.Any()
+      return {{baseNamespace}}.google.protobuf.Any.deserializeBinaryFromReader(msg, reader)
+    },
+
+    /**
+     * Deserializes binary data (in protobuf wire format) from the
+     * given reader into the given message object.
+     * @param msg {proto.google.protobuf.Any} The message object to deserialize into.
+     * @param reader {jspb.BinaryReader} The BinaryReader to use.
+     * @return {proto.google.protobuf.Any}
+     */
+    deserializeBinaryFromReader: function (msg, reader) {
+      msg.setDeserialized(true)
+      while (reader.nextField()) {
+        if (reader.isEndGroup()) {
+          break
+        }
+        var value
+        var field = reader.getFieldNumber()
+        switch (field) {
+          case 1:
+            value = reader.readString()
+            msg.setType_url(value)
+            break
+          case 2:
+            value = reader.readBytes()
+            msg.setValue(value)
+            break
+          default:
+            reader.skipField()
+            break
+        }
+      }
+      return msg
+    }
+  },
+
+  /*
+  *****************************************************************************
+     PROPERTIES
+  *****************************************************************************
+  */
+  properties: {
+
+    type_url: {
+      check: 'String',
+      init: '',
+      nullable: false,
+      event: 'changeType_url',
+      apply: '_applyType_url'
+    },
+
+    value: {
+      init: null,
+      nullable: true,
+      event: 'changeValue',
+      transform: '_transformAny'
+    }
+  },
+
+  /*
+  ******************************************************
+    MEMBERS
+  ******************************************************
+  */
+  members: {
+    __valueClazz: null,
+
+    _applyType_url: function (value) {
+      this.__valueClazz = qx.Class.getByName('{{baseNamespace}}.' + value.split('/').pop())
+    },
+
+    _transformAny: function (value) {
+      return this.__valueClazz.deserializeBinary(value)
+    }
+  }
+})

@@ -28,8 +28,20 @@ function setPropEntry(def, key, value) {
 }
 
 const genTypeClass = (messageType, s, proto, relNamespace) => {
-  const properties = []
   const classNamespace = getClassNamespace(messageType, proto, relNamespace)
+  if (messageType.name === 'Any') {
+    const anyTemplate = handlebars.compile(fs.readFileSync(path.join(__dirname, '..', 'templates', 'Any.js.hbs'), 'utf8'))
+    const code = anyTemplate({
+      baseNamespace: baseNamespace,
+      lineEnd: lineEnd
+    })
+  
+    return [{
+      namespace: classNamespace,
+      code: code
+    }]
+  }
+  const properties = []
 
   let serializer = []
   let deserializer = []
@@ -98,7 +110,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         }
       } else if (prop.type === 11) {
         // reference
-
+        
         // check if reference is to a nestedType
         const completeType = `${baseNamespace}${prop.typeName}`
         if (completeType.startsWith(classNamespace)) {
