@@ -217,6 +217,10 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       }
     }
     properties.push(propertyDefinition)
+    if (type.writerTransform) {
+      writerTransform += `
+      ${type.writerTransform}${lineEnd}`
+    }
 
     if (type.writerCode) {
       serializer.push(type.writerCode)

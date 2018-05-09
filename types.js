@@ -10,14 +10,16 @@ module.exports = {
     pbType: 'Int64String',
     transform: '_toString',
     emptyComparison: '.length > 0',
-    defaultValue: '\'\''
+    defaultValue: '\'\'',
+    writerTransform: `f = f.startsWith('0x') ? '' + parseInt(f, 16) : f`
   },
   4: {
     qxType: 'String',
     pbType: 'Uint64String',
     transform: '_toString',
     emptyComparison: '.length > 0',
-    defaultValue: '\'\''
+    defaultValue: '\'\'',
+    writerTransform: `f = f.startsWith('0x') ? '' + parseInt(f, 16) : f`
   },
   5: {
     qxType: 'Number',
