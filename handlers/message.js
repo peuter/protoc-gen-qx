@@ -99,7 +99,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           qxType: 'Number',
           pbType: 'Enum',
           emptyComparison: ' !== 0.0',
-          comment: []
+          comment: [],
+          packed: true
         }
         if (prop.defaultValue === undefined) {
           // according to protobuf spec enums default value is always 0
@@ -226,6 +227,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       serializer.push(type.writerCode)
     } else if (type.pbType) {
       if (list) {
+
         serializer.push(`f = message.get${upperCase}()${lineEnd}
       if (f${type.emptyComparison}) {
         writer.writeRepeated${type.pbType}(
@@ -248,10 +250,17 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       deserializer.push(type.readerCode)
     } else if (type.pbType) {
       if (list) {
-        deserializer.push(`          case ${prop.number}:
+        if (type.packed) {
+          deserializer.push(`          case ${prop.number}:
+            value = reader.readPacked${type.pbType}()${lineEnd}
+            msg.get${upperCase}().replace(value)${lineEnd}
+            break${lineEnd}`)
+        } else {
+          deserializer.push(`          case ${prop.number}:
             value = reader.read${type.pbType}()${lineEnd}
             msg.get${upperCase}().push(value)${lineEnd}
             break${lineEnd}`)
+        }
       } else {
         deserializer.push(`          case ${prop.number}:
             value = reader.read${type.pbType}()${lineEnd}

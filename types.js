@@ -3,7 +3,8 @@ module.exports = {
     qxType: 'Number',
     pbType: 'Float',
     emptyComparison: ' !== null',
-    defaultValue: 0
+    defaultValue: 0,
+    packed: true
   },
   3: {
     qxType: 'String',
@@ -11,7 +12,8 @@ module.exports = {
     transform: '_toString',
     emptyComparison: '.length > 0',
     defaultValue: '\'\'',
-    writerTransform: `f = f.startsWith('0x') ? '' + parseInt(f, 16) : f`
+    writerTransform: `f = f.startsWith('0x') ? '' + parseInt(f, 16) : f`,
+    packed: true
   },
   4: {
     qxType: 'String',
@@ -19,13 +21,15 @@ module.exports = {
     transform: '_toString',
     emptyComparison: '.length > 0',
     defaultValue: '\'\'',
-    writerTransform: `f = f.startsWith('0x') ? '' + parseInt(f, 16) : f`
+    writerTransform: `f = f.startsWith('0x') ? '' + parseInt(f, 16) : f`,
+    packed: true
   },
   5: {
     qxType: 'Number',
     pbType: 'Int32',
     emptyComparison: ' !== 0',
-    defaultValue: 0
+    defaultValue: 0,
+    packed: true
   },
   8: {
     qxType: 'Boolean',
@@ -49,7 +53,8 @@ module.exports = {
     qxType: 'Number',
     pbType: 'Uint32',
     emptyComparison: ' !== 0',
-    defaultValue: 0
+    defaultValue: 0,
+    packed: true
   }
   // 14: enum see message.js
 }
