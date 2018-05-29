@@ -228,7 +228,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     } else if (type.pbType) {
       if (list) {
         const writeMethod = type.packed ? `writePacked${type.pbType}` : `writeRepeated${type.pbType}`
-        serializer.push(`f = message.get${upperCase}()${lineEnd}
+        serializer.push(`f = message.get${upperCase}().toArray()${lineEnd}
       if (f${type.emptyComparison}) {
         writer.${writeMethod}(
           ${prop.number},
