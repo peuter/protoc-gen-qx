@@ -212,8 +212,15 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         setPropEntry(propertyDefinition.entries, 'init', `null`)
         setPropEntry(propertyDefinition.entries, 'nullable', `true`)
         if (prop.options && prop.options.hasOwnProperty('date') && prop.options.date === true) {
+          if (type.pbType === 'String') {
+            // use RFC 3339 format
+            writerTransform = `
+      f = f instanceof Date ? f.toISOString() : ''${lineEnd}`  
+          } else {
+            // use timestamp
           writerTransform = `
-      f = f instanceof Date ? Math.round(f.getTime() / 1000) : ''${lineEnd}`
+      f = f instanceof Date ? '' + Math.round(f.getTime() / 1000) : ''${lineEnd}`
+          }
         }
       }
     }
