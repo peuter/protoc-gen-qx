@@ -10,7 +10,7 @@ qx.Class.define('{{baseNamespace}}.util.ValidatorFactory', {
   */
   statics: {
     __registry: [],
-    __regex: /^\s*([\w][^\(]+)\(([^\)]*)*\)\s*$/,
+    __regex: /^\s*([\w][^\(]+)\(?([^\)]*)*\)?\s*$/,
 
     registerValidatorClass: function (validatorClass) {
       if (!this.__registry.includes(validatorClass)) {
