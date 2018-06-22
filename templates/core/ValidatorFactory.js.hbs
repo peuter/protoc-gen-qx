@@ -47,9 +47,9 @@ qx.Class.define('{{baseNamespace}}.util.ValidatorFactory', {
       if (match) {
         return {
           name: match[1],
-          params: match[2].split(',').map(function (param) {
+          params: match[2].length === 3 ? match[2].split(',').map(function (param) {
             return param.trim(){{lineEnd}}
-          })
+          }) : []
         }
       }
       return null{{lineEnd}}
