@@ -28,6 +28,7 @@ let baseServiceClass = template({
   lineEnd: lineEnd
 })
 
+
 require(__dirname + '/extensions_pb')
 
 // extensions must be required before parsing
@@ -136,6 +137,19 @@ CodeGeneratorRequest()
       name: `source/class/${baseNamespace}/core/BaseMessage.js`,
       content: baseMessageClass
     })
+
+    if (config.get('validatorClasses').length) {
+      template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'ValidatorFactory.js.hbs'), 'utf8'))
+      let validatorFactoryClass = template({
+        baseNamespace: baseNamespace,
+        validatorClasses: config.get('validatorClasses').filter(clazz => clazz !== 'qx.util.Validate'),
+        lineEnd: lineEnd,
+      })
+      files.push({
+        name: `source/class/${baseNamespace}/util/ValidatorFactory.js`,
+        content: validatorFactoryClass
+      })
+    }
 
     if (parameters.skipDeps !== true) {
       // create resources

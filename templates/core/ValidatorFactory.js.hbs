@@ -1,0 +1,64 @@
+/**
+ * Validator factory where property validation function can be registered to.
+ */
+qx.Class.define('{{baseNamespace}}.util.ValidatorFactory', {
+
+  /*
+  *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics: {
+    __registry: [],
+    __regex: /^\s*([\w][^\(]+)\(([^\)]*)*\)\s*$/,
+
+    registerValidatorClass: function (validatorClass) {
+      if (!this.__registry.includes(validatorClass)) {
+        this.__registry.push(validatorClass){{lineEnd}}
+      }
+    },
+
+    /**
+     *
+     * @param methodCall {String} method call as string e.g. range(0,10)
+     * @returns {Function}
+     */
+    getValidator: function (methodCall) {
+      var call = this.__parseMethodCall(methodCall){{lineEnd}}
+      if (qx.core.Environment.get('qx.debug')) {
+        qx.core.Assert.assertNotNull(call){{lineEnd}}
+      }
+      for (var i = 0, l = this.__registry.length; i < l; i++) {
+        var validatorClass = this.__registry[i]{{lineEnd}}
+        if (validatorClass.hasOwnProperty(call.name)) {
+          return validatorClass[call.name].apply(validatorClass, call.params){{lineEnd}}
+        }
+      }
+      // check if there is a qx validator for that
+      if (qx.util.Validate.hasOwnProperty(call.name)) {
+        return qx.util.Validate[call.name].apply(qx.util.Validate, call.params){{lineEnd}}
+      }
+
+      return null{{lineEnd}}
+    },
+
+    __parseMethodCall: function (methodCall) {
+      var match = this.__regex.exec(methodCall){{lineEnd}}
+      if (match) {
+        return {
+          name: match[1],
+          params: match[2].split(',').map(function (param) {
+            return param.trim(){{lineEnd}}
+          })
+        }
+      }
+      return null{{lineEnd}}
+    }
+  },
+
+  defer: function (statics) {
+  {{#each validatorClasses}}
+    statics.registerValidatorClass({{&.}}){{../lineEnd}}
+  {{/each}} 
+  }
+});

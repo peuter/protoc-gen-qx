@@ -238,6 +238,10 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           }
         }
       }
+
+      if (prop.options.hasOwnProperty('validate')) {
+        propertyDefinition.entries.push({key: `validate`, value: `${baseNamespace}.util.ValidatorFactory.getValidator('${prop.options.validate}')`})
+      }
     }
     properties.push(propertyDefinition)
     if (type.writerTransform) {

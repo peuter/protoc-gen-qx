@@ -132,7 +132,14 @@ module.exports {
   // skip generation and including of selected external libraries (filename needed, e.g. google-protobuf.js or grpc-web-client.js)
   skipDeps: [],
   // if true: do not add the fallback loading of external dependencies to proto.core.BaseMessage' defer method
-  skipDepLoadingFallback: false
+  skipDepLoadingFallback: false,
+  // do not end lines of generated code with ';' if true
+  withoutSemi: false,
+  // class to use for repeated properties
+  repeatedClass: 'qx.data.Array',
+  // static classes that provide property validation methods (like qx.util.Validate)
+  // these classes are registered in the proto.util.ValidationFactory
+  validatorClasses: []
 }
 ```
 
