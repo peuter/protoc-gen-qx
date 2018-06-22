@@ -91,6 +91,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     prop.comment = ''
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
     let writerTransform = ''
+    let isMap = false
     if (!type && prop.typeName) {
       // reference to another proto message
       if (prop.type === 14) {
@@ -114,8 +115,22 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         
         // check if reference is to a nestedType
         const completeType = `${baseNamespace}${prop.typeName}`
-        if (completeType.startsWith(classNamespace)) {
+        if (completeType.startsWith(classNamespace + '.')) {
           const className = classNamespace.split('.').pop()
+          
+          // check if this is a map type (only possible by name)
+          isMap = prop.label === 3 && completeType === `${classNamespace}.${upperCase}Entry`
+          memberCode.push(`/**
+     * Get ${prop.name} map entry by key.
+     * 
+     * @param key {String} map key
+     * @returns {var|null} map value if the key exists in the map
+     */
+    get${upperCase}ByKey: function (key) {
+      return this.get${upperCase}().toArray().find(function (mapEntry) {
+        return mapEntry.getKey() === key${lineEnd}
+      }, this)${lineEnd}
+    }`)
           prop.typeName = prop.typeName.replace(`.${className}.`, `.${className.substring(0, 1).toLowerCase()}${className.substring(1)}.`)
           // add to requirements
           requirements.push(`@require(${baseNamespace}${prop.typeName})`)
