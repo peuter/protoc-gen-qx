@@ -1,13 +1,13 @@
 #! /usr/bin/env node
 
 /* eslint-env es6, node */
-const webpack = require('webpack');
-const MemoryFileSystem = require('memory-fs');
+const webpack = require('webpack')
+const MemoryFileSystem = require('memory-fs')
 const memoryFs = new MemoryFileSystem();
-const {CodeGeneratorRequest, CodeGeneratorResponse, CodeGeneratorResponseError} = require('protoc-plugin');
 const fs = require('fs')
 const path = require('path')
 const config = require('./config')
+const {CodeGeneratorRequest, CodeGeneratorResponse, CodeGeneratorResponseError} = require('protoc-plugin')
 const baseNamespace = config.get('baseNamespace')
 const handlebars = require('handlebars')
 const handlers = {
@@ -28,9 +28,6 @@ let baseServiceClass = template({
   lineEnd: lineEnd
 })
 
-
-require(__dirname + '/extensions_pb')
-
 // extensions must be required before parsing
 config.get('require').forEach(dep => {
   const depPath = path.normalize(path.join(process.cwd() + '/' + dep))
@@ -40,7 +37,7 @@ config.get('require').forEach(dep => {
 CodeGeneratorRequest()
   .then(async r => {
     const req = r.toObject()
-    
+
     // parse parameters
     let paramParts, key, value
     const parameters = {}

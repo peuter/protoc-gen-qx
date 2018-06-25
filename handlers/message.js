@@ -218,29 +218,31 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     }
 
     if (prop.options) {
-      if (prop.options.hasOwnProperty('annotations')) {
-        propertyDefinition.entries.push({key: `'@'`, value: `['${prop.options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`})
-      }
-      if (prop.options.hasOwnProperty('date') && prop.options.date === true) {
-        setPropEntry(propertyDefinition.entries, 'transform', `'_toDate'`)
-        setPropEntry(propertyDefinition.entries, 'check', `'Date'`)
-        setPropEntry(propertyDefinition.entries, 'init', `null`)
-        setPropEntry(propertyDefinition.entries, 'nullable', `true`)
-        if (prop.options && prop.options.hasOwnProperty('date') && prop.options.date === true) {
+      if (prop.options.hasOwnProperty('qx')) {
+        if (prop.options.qx.hasOwnProperty('annotations')) {
+          propertyDefinition.entries.push({key: `'@'`, value: `['${prop.options.qx.annotations.split(',').map(x => x.trim()).join('\', \'')}']`})
+        }
+        if (prop.options.qx.hasOwnProperty('date') && prop.options.qx.date === true) {
+          setPropEntry(propertyDefinition.entries, 'transform', `'_toDate'`)
+          setPropEntry(propertyDefinition.entries, 'check', `'Date'`)
+          setPropEntry(propertyDefinition.entries, 'init', `null`)
+          setPropEntry(propertyDefinition.entries, 'nullable', `true`)
           if (type.pbType === 'String') {
             // use RFC 3339 format
             writerTransform = `
-      f = f instanceof Date ? f.toISOString() : ''${lineEnd}`  
+        f = f instanceof Date ? f.toISOString() : ''${lineEnd}`  
           } else {
             // use timestamp
           writerTransform = `
-      f = f instanceof Date ? '' + Math.round(f.getTime() / 1000) : ''${lineEnd}`
+        f = f instanceof Date ? '' + Math.round(f.getTime() / 1000) : ''${lineEnd}`
           }
         }
+        if (prop.options.qx.hasOwnProperty('validate')) {
+          propertyDefinition.entries.push({key: `validate`, value: `${baseNamespace}.util.ValidatorFactory.getValidator('${prop.options.qx.validate}')`})
+        }
       }
-
-      if (prop.options.hasOwnProperty('validate')) {
-        propertyDefinition.entries.push({key: `validate`, value: `${baseNamespace}.util.ValidatorFactory.getValidator('${prop.options.validate}')`})
+      if (prop.options.hasOwnProperty('nullable')) {
+        setPropEntry(propertyDefinition.entries, 'nullable', prop.options.nullable)
       }
     }
     properties.push(propertyDefinition)
