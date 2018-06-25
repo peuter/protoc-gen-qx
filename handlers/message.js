@@ -117,10 +117,15 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         const completeType = `${baseNamespace}${prop.typeName}`
         if (completeType.startsWith(classNamespace + '.')) {
           const className = classNamespace.split('.').pop()
+
+          // find the nestedType declaration
+          const nestedTypeName = prop.typeName.split('.').pop();
+          const nestedType = messageType.nestedTypeList.find(nType => nType.name === nestedTypeName);
           
-          // check if this is a map type (only possible by name)
-          isMap = prop.label === 3 && completeType === `${classNamespace}.${upperCase}Entry`
-          memberCode.push(`/**
+          // check if this is a map type
+          isMap = nestedType && nestedType.options && nestedType.options.mapEntry === true
+          if (isMap) {
+            memberCode.push(`/**
      * Get ${prop.name} map entry by key.
      * 
      * @param key {String} map key
@@ -131,6 +136,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         return mapEntry.getKey() === key${lineEnd}
       }, this)${lineEnd}
     }`)
+          }
           prop.typeName = prop.typeName.replace(`.${className}.`, `.${className.substring(0, 1).toLowerCase()}${className.substring(1)}.`)
           // add to requirements
           requirements.push(`@require(${baseNamespace}${prop.typeName})`)
