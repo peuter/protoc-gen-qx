@@ -10,22 +10,9 @@ const template = handlebars.compile(fs.readFileSync(path.join(__dirname, '..', '
 handlebars.registerHelper('curly', function(object, open) {
   return open ? '{' : '}';
 });
-
+const {setPropEntry} = require('../utils')
 const arrayClass = config.get('repeatedClass')
-
-function setPropEntry(def, key, value) {
-  let exists = false
-  def.some(entry => {
-    if (entry.key === key) {
-      exists = true
-      entry.value = value
-      return true
-    }
-  })
-  if (!exists) {
-    def.push({key: key, value: value})
-  }
-}
+const optionHandler = require('./options/index')
 
 const genTypeClass = (messageType, s, proto, relNamespace) => {
   const classNamespace = getClassNamespace(messageType, proto, relNamespace)
@@ -90,7 +77,9 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     const list = prop.label === 3
     prop.comment = ''
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
-    let writerTransform = ''
+    const context = {
+      writerTransform: ''
+    }
     let isMap = false
     if (!type && prop.typeName) {
       // reference to another proto message
@@ -145,7 +134,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         if (prop.typeName === '.google.protobuf.Timestamp') {
           config.set('timestampSupport', true)
           qxType = 'Date'
-          writerTransform = `
+          context.writerTransform = `
       f = new ${baseNamespace}${prop.typeName}({seconds: '' + Math.round(f.getTime()/1000), nanos: (f.getTime() - Math.round(f.getTime()/1000) * 1000000)})${lineEnd}`
         }
         type = {
@@ -166,7 +155,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }` : `f = message.get${upperCase}()${lineEnd}${writerTransform}
+      }` : `f = message.get${upperCase}()${lineEnd}${context.writerTransform}
       if (f != null) {
         writer.writeMessage(
           ${prop.number},
@@ -189,25 +178,25 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       // according to protobuf spec enums default value is always 0
       prop.defaultValue = type.defaultValue
     }
-    let propertyDefinition = {
+    context.propertyDefinition = {
       comment: prop.comment,
       name: prop.name,
       entries: []
     }
 
     if (list) {
-      propertyDefinition.comment = [`@type {${arrayClass}} array of {@link ${type.qxType}}`]
-      propertyDefinition.entries = propertyDefinition.entries.concat([
+      context.propertyDefinition.comment = [`@type {${arrayClass}} array of {@link ${type.qxType}}`]
+      context.propertyDefinition.entries = context.propertyDefinition.entries.concat([
           {key: 'check', value: `'${arrayClass}'`},
           {key: 'deferredInit', value: true},
           {key: 'event', value: `'change${upperCase}'`}
       ])
       constructorCode.push(`this.init${upperCase}(new ${arrayClass}())${lineEnd}`)
     } else {
-      propertyDefinition.entries = propertyDefinition.entries.concat([
+      context.propertyDefinition.entries = context.propertyDefinition.entries.concat([
         {key: 'check', value: `'${type.qxType}'`},
         {key: 'init', value: prop.defaultValue !== undefined ? prop.defaultValue : 'null'},
-        {key: 'nullable', value: prop.defaultValue === undefined},
+        // {key: 'nullable', value: prop.defaultValue === undefined},
         {key: 'event', value: `'change${upperCase}'`}
       ])
     }
@@ -216,44 +205,24 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       const oneOf = oneOfs[prop.oneofIndex]
       oneOf.types.push(prop.type)
       oneOf.names.push(prop.name)
-      setPropEntry(propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
+      setPropEntry(context.propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
     }
 
     if (type.hasOwnProperty('transform')) {
-      setPropEntry(propertyDefinition.entries, 'transform', `'${type.transform}'`)
+      setPropEntry(context.propertyDefinition.entries, 'transform', `'${type.transform}'`)
     }
 
+    // add some more information to the context that might be needed by the option handlers
+    context.type = type
+    context.lineEnd = lineEnd
+    context.baseNamespace = baseNamespace
+
     if (prop.options) {
-      if (prop.options.hasOwnProperty('qx')) {
-        if (prop.options.qx.hasOwnProperty('annotations') && prop.options.qx.annotations) {
-          setPropEntry(propertyDefinition.entries, `'@'`, `['${prop.options.qx.annotations.split(',').map(x => x.trim()).join('\', \'')}']`)
-        }
-        if (prop.options.qx.hasOwnProperty('date') && prop.options.qx.date === true) {
-          setPropEntry(propertyDefinition.entries, 'transform', `'_toDate'`)
-          setPropEntry(propertyDefinition.entries, 'check', `'Date'`)
-          setPropEntry(propertyDefinition.entries, 'init', `null`)
-          setPropEntry(propertyDefinition.entries, 'nullable', `true`)
-          if (type.pbType === 'String') {
-            // use RFC 3339 format
-            writerTransform = `
-      f = f instanceof Date ? f.toISOString() : ''${lineEnd}`  
-          } else {
-            // use timestamp
-          writerTransform = `
-      f = f instanceof Date ? '' + Math.round(f.getTime() / 1000) : ''${lineEnd}`
-          }
-        }
-        if (prop.options.qx.hasOwnProperty('validate') && prop.options.qx.validate) {
-          setPropEntry(propertyDefinition.entries, `validate`, `${baseNamespace}.util.ValidatorFactory.getValidator('${prop.options.qx.validate}')`)
-        }
-      }
-      if (prop.options.hasOwnProperty('nullable')) {
-        setPropEntry(propertyDefinition.entries, 'nullable', prop.options.nullable)
-      }
+      optionHandler.process(prop.options, context)
     }
-    properties.push(propertyDefinition)
+    properties.push(context.propertyDefinition)
     if (type.writerTransform) {
-      writerTransform += `
+      context.writerTransform += `
       ${type.writerTransform}${lineEnd}`
     }
 
@@ -270,7 +239,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         )${lineEnd}
       }`)
       } else {
-        serializer.push(`f = message.get${upperCase}()${lineEnd}${writerTransform}
+        serializer.push(`f = message.get${upperCase}()${lineEnd}${context.writerTransform}
       if (f${type.emptyComparison}) {
         writer.write${type.pbType}(
           ${prop.number},

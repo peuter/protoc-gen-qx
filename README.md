@@ -139,7 +139,9 @@ module.exports {
   repeatedClass: 'qx.data.Array',
   // static classes that provide property validation methods (like qx.util.Validate)
   // these classes are registered in the proto.util.ValidationFactory
-  validatorClasses: []
+  validatorClasses: [],
+  // Field option handlers (for example see: handlers/options/qx.js)
+  optionHandlers: []
 }
 ```
 

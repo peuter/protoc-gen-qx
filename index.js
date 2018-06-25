@@ -34,6 +34,15 @@ config.get('require').forEach(dep => {
   require(depPath)
 })
 
+// register option handlers
+const optionHandler = require('./handlers/options/index')
+let {name, handler} = require('./handlers/options/qx')
+optionHandler.registerHandler(name, handler)
+config.get('optionHandlers').forEach(handlerPath => {
+  let {name, handler} = require(path.normalize(path.join(process.cwd() + '/' + handlerPath)))
+  optionHandler.registerHandler(name, handler)
+})
+
 CodeGeneratorRequest()
   .then(async r => {
     const req = r.toObject()
