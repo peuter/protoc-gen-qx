@@ -28,23 +28,28 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       code: code
     }]
   }
-  const properties = []
 
-  let serializer = []
-  let deserializer = []
-  let statics = []
-  let constructorCode = []
-  let oneOfs = []
-  let memberCode = []
-  let defers = []
-  let requirements = []
+  // all the information needed to generate the code
+  const context = {
+    requirements: [],
+    constructor: [],
+    statics: [],
+    properties: [],
+    serializer: [],
+    deserializer: [],
+    oneOfs: [],
+    members: [],
+    defers: [],
+    lineEnd: lineEnd,
+    baseNamespace: baseNamespace
+  }
 
   messageType.enumTypeList.forEach(entry => {
     let valueCode = []
     entry.valueList.forEach(enumValue => {
       valueCode.push(`${enumValue.name}: ${enumValue.number}`)
     })
-    statics.push(`/**
+    context.statics.push(`/**
      * @enum
      */
     ${entry.name}: {
@@ -53,13 +58,13 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
   })
   messageType.oneofDeclList.forEach((prop, i) => {
     let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
-    const index = oneOfs.length
-    oneOfs.push(Object.assign({
+    const index = context.oneOfs.length
+    context.oneOfs.push(Object.assign({
       types: [],
       names: [],
       event: `change${upperCase}`
     }, prop))
-    memberCode.push(`// oneOf property apply
+    context.members.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       this.set${upperCase}(name)${lineEnd}
       
@@ -73,19 +78,28 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
   })
 
   messageType.fieldList.forEach(prop => {
-    let type = typeMap[prop.type]
     const list = prop.label === 3
-    prop.comment = ''
-    let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
-    const context = {
+    const propertyDefinition = {
+      comment: '',
+      name: prop.name,
+      entries: [],
+      serializer: [],
+      deserializer: [],
+      type: typeMap[prop.type] ? Object.assign({}, typeMap[prop.type]) : null,
       writerTransform: ''
     }
+    // add writer tronform from type definition
+    if (propertyDefinition.type && propertyDefinition.type.writerTransform) {
+      propertyDefinition.writerTransform += `
+      ${propertyDefinition.type.writerTransform}${lineEnd}`
+    }
+    let upperCase = prop.name.substring(0, 1).toUpperCase() + prop.name.substring(1)
     let isMap = false
-    if (!type && prop.typeName) {
+    if (!propertyDefinition.type && prop.typeName) {
       // reference to another proto message
       if (prop.type === 14) {
         // enum
-        type = {
+        propertyDefinition.type = {
           qxType: 'Number',
           pbType: 'Enum',
           emptyComparison: ' !== 0.0',
@@ -97,7 +111,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           prop.defaultValue = 0
         }
         if (prop.typeName) {
-          prop.comment = [`Enum of type {@link ${baseNamespace}${prop.typeName}}`]
+          propertyDefinition.comment = [`Enum of type {@link ${baseNamespace}${prop.typeName}}`]
         }
       } else if (prop.type === 11) {
         // reference
@@ -114,7 +128,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           // check if this is a map type
           isMap = nestedType && nestedType.options && nestedType.options.mapEntry === true
           if (isMap) {
-            memberCode.push(`/**
+            context.members.push(`/**
      * Get ${prop.name} map entry by key.
      * 
      * @param key {String} map key
@@ -128,16 +142,16 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           }
           prop.typeName = prop.typeName.replace(`.${className}.`, `.${className.substring(0, 1).toLowerCase()}${className.substring(1)}.`)
           // add to requirements
-          requirements.push(`@require(${baseNamespace}${prop.typeName})`)
+          context.requirements.push(`@require(${baseNamespace}${prop.typeName})`)
         }
         let qxType = baseNamespace + prop.typeName
         if (prop.typeName === '.google.protobuf.Timestamp') {
           config.set('timestampSupport', true)
           qxType = 'Date'
-          context.writerTransform = `
+          propertyDefinition.writerTransform = `
       f = new ${baseNamespace}${prop.typeName}({seconds: '' + Math.round(f.getTime()/1000), nanos: (f.getTime() - Math.round(f.getTime()/1000) * 1000000)})${lineEnd}`
         }
-        type = {
+        propertyDefinition.type = {
           qxType: `${qxType}`,
           readerCode: list ? `          case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
@@ -155,7 +169,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           f,
           ${baseNamespace}${prop.typeName}.serializeBinaryToWriter
         )${lineEnd}
-      }` : `f = message.get${upperCase}()${lineEnd}${context.writerTransform}
+      }` : `f = message.get${upperCase}()${lineEnd}${propertyDefinition.writerTransform}
       if (f != null) {
         writer.writeMessage(
           ${prop.number},
@@ -166,82 +180,68 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           emptyComparison: ' !== null'
         }
         if (prop.typeName === '.google.protobuf.Timestamp') {
-          type.transform = '_transformTimestampToDate'
+          propertyDefinition.type.transform = '_transformTimestampToDate'
         }
       }
     }
-    if (!type) {
+    if (!propertyDefinition.type) {
       console.error('undefined type:', prop)
       return
     }
-    if (prop.defaultValue === undefined && type.hasOwnProperty('defaultValue')) {
+
+    if (prop.defaultValue === undefined && propertyDefinition.type.hasOwnProperty('defaultValue')) {
       // according to protobuf spec enums default value is always 0
-      prop.defaultValue = type.defaultValue
-    }
-    context.propertyDefinition = {
-      comment: prop.comment,
-      name: prop.name,
-      entries: []
+      prop.defaultValue = propertyDefinition.type.defaultValue
     }
 
     if (list) {
-      context.propertyDefinition.comment = [`@type {${arrayClass}} array of {@link ${type.qxType}}`]
-      context.propertyDefinition.entries = context.propertyDefinition.entries.concat([
+      propertyDefinition.comment = [`@type {${arrayClass}} array of {@link ${propertyDefinition.type.qxType}}`]
+      propertyDefinition.entries = propertyDefinition.entries.concat([
           {key: 'check', value: `'${arrayClass}'`},
           {key: 'deferredInit', value: true},
           {key: 'event', value: `'change${upperCase}'`}
       ])
-      constructorCode.push(`this.init${upperCase}(new ${arrayClass}())${lineEnd}`)
+      context.constructor.push(`this.init${upperCase}(new ${arrayClass}())${lineEnd}`)
     } else {
-      context.propertyDefinition.entries = context.propertyDefinition.entries.concat([
-        {key: 'check', value: `'${type.qxType}'`},
+      propertyDefinition.entries = propertyDefinition.entries.concat([
+        {key: 'check', value: `'${propertyDefinition.type.qxType}'`},
         {key: 'init', value: prop.defaultValue !== undefined ? prop.defaultValue : 'null'},
         // {key: 'nullable', value: prop.defaultValue === undefined},
         {key: 'event', value: `'change${upperCase}'`}
       ])
     }
-
     if (prop.hasOwnProperty('oneofIndex') && prop.oneofIndex !== undefined) {
-      const oneOf = oneOfs[prop.oneofIndex]
+      const oneOf = context.oneOfs[prop.oneofIndex]
       oneOf.types.push(prop.type)
       oneOf.names.push(prop.name)
-      setPropEntry(context.propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
+      setPropEntry(propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
     }
 
-    if (type.hasOwnProperty('transform')) {
-      setPropEntry(context.propertyDefinition.entries, 'transform', `'${type.transform}'`)
+    if (propertyDefinition.type.hasOwnProperty('transform')) {
+      setPropEntry(propertyDefinition.entries, 'transform', `'${propertyDefinition.type.transform}'`)
     }
-
-    // add some more information to the context that might be needed by the option handlers
-    context.type = type
-    context.lineEnd = lineEnd
-    context.baseNamespace = baseNamespace
 
     if (prop.options) {
-      optionHandler.process(prop.options, context)
+      optionHandler.process(prop.options, propertyDefinition, context)
     }
-    properties.push(context.propertyDefinition)
-    if (type.writerTransform) {
-      context.writerTransform += `
-      ${type.writerTransform}${lineEnd}`
-    }
+    context.properties.push(propertyDefinition)
 
-    if (type.writerCode) {
-      serializer.push(type.writerCode)
-    } else if (type.pbType) {
+    if (propertyDefinition.type.writerCode) {
+      propertyDefinition.serializer.push(propertyDefinition.type.writerCode)
+    } else if (propertyDefinition.type.pbType) {
       if (list) {
-        const writeMethod = type.packed ? `writePacked${type.pbType}` : `writeRepeated${type.pbType}`
-        serializer.push(`f = message.get${upperCase}().toArray()${lineEnd}
-      if (f${type.emptyComparison}) {
+        const writeMethod = propertyDefinition.type.packed ? `writePacked${propertyDefinition.type.pbType}` : `writeRepeated${propertyDefinition.type.pbType}`
+        propertyDefinition.serializer.push(`f = message.get${upperCase}().toArray()${lineEnd}
+      if (f${propertyDefinition.type.emptyComparison}) {
         writer.${writeMethod}(
           ${prop.number},
           f
         )${lineEnd}
       }`)
       } else {
-        serializer.push(`f = message.get${upperCase}()${lineEnd}${context.writerTransform}
-      if (f${type.emptyComparison}) {
-        writer.write${type.pbType}(
+        propertyDefinition.serializer.push(`f = message.get${upperCase}()${lineEnd}${propertyDefinition.writerTransform}
+      if (f${propertyDefinition.type.emptyComparison}) {
+        writer.write${propertyDefinition.type.pbType}(
           ${prop.number},
           f
         )${lineEnd}
@@ -249,31 +249,31 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       }
     }
 
-    if (type.readerCode) {
-      deserializer.push(type.readerCode)
-    } else if (type.pbType) {
+    if (propertyDefinition.type.readerCode) {
+      propertyDefinition.deserializer.push(propertyDefinition.type.readerCode)
+    } else if (propertyDefinition.type.pbType) {
       if (list) {
-        if (type.packed) {
-          deserializer.push(`          case ${prop.number}:
-            value = reader.readPacked${type.pbType}()${lineEnd}
+        if (propertyDefinition.type.packed) {
+          propertyDefinition.deserializer.push(`          case ${prop.number}:
+            value = reader.readPacked${propertyDefinition.type.pbType}()${lineEnd}
             msg.get${upperCase}().replace(value)${lineEnd}
             break${lineEnd}`)
         } else {
-          deserializer.push(`          case ${prop.number}:
-            value = reader.read${type.pbType}()${lineEnd}
+          propertyDefinition.deserializer.push(`          case ${prop.number}:
+            value = reader.read${propertyDefinition.type.pbType}()${lineEnd}
             msg.get${upperCase}().push(value)${lineEnd}
             break${lineEnd}`)
         }
       } else {
-        deserializer.push(`          case ${prop.number}:
-            value = reader.read${type.pbType}()${lineEnd}
+        propertyDefinition.deserializer.push(`          case ${prop.number}:
+            value = reader.read${propertyDefinition.type.pbType}()${lineEnd}
             msg.set${upperCase}(value)${lineEnd}
             break${lineEnd}`)
       }
     }
   })
 
-  oneOfs.forEach((oneOf, index) => {
+  context.oneOfs.forEach((oneOf, index) => {
     // try to find a matching type superset
     let complexType = true
     oneOf.types.some(entry => {
@@ -285,7 +285,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     const firstUp = oneOf.name.substring(0, 1).toUpperCase() + oneOf.name.substring(1)
     // experimental add a shortcut function to generically set the oneof object
     if (complexType) {
-      memberCode.push(`/**
+      context.members.push(`/**
      * Set value for oneOf field '${oneOf.name}'. Tries to detect the object type and call the correct setter.
      * @param obj {var}
      */
@@ -297,7 +297,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + ${classNamespace}.ONEOFS[${index}].join(', '))${lineEnd}
       }
     }`)
-      statics.push(`/**
+      context.statics.push(`/**
      * Returns the allowed type for the oneOf field '${oneOf.name}'.
      * @returns {Array} array of type names as string
      */
@@ -306,7 +306,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     }`)
     }
 
-    memberCode.push(`/**
+    context.members.push(`/**
      * Get value for oneOf field '${oneOf.name}'.
      * @returns {var}
      */
@@ -326,15 +326,18 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       ]
     }
     propDef.entries.unshift({key: 'check', value: `['${oneOf.names.join('\', \'')}']`})
-    properties.push(propDef)
+    context.properties.push(propDef)
 
     // write the one of members
     if (index === 0) {
-      statics.unshift(`// array with oneOf property groups
+      context.statics.unshift(`// array with oneOf property groups
     ONEOFS: []`)
     }
-    defers.push(`statics.ONEOFS[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
+    context.defers.push(`statics.ONEOFS[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
   })
+
+  let deserializer = context.properties.filter(entry => entry.deserializer && entry.deserializer.length).map(entry => entry.deserializer.join('\n'))
+  let serializer = context.properties.filter(entry => entry.serializer && entry.serializer.length).map(entry => entry.serializer.join('\n'))
 
   if (deserializer.length) {
     deserializer = `msg.setDeserialized(true)${lineEnd}
@@ -370,16 +373,16 @@ ${deserializer.join('\n')}
   }
 
   const code = template({
-    classComment: getClassComment(messageType, s, proto, 4, requirements),
+    classComment: getClassComment(messageType, s, proto, 4, context.requirements),
     classNamespace: classNamespace,
     initCode: initCode,
-    constructorCode: constructorCode,
-    statics: statics,
+    constructorCode: context.constructor,
+    statics: context.statics,
     serializer: serializer,
     deserializer: deserializer,
-    properties: properties,
-    members: memberCode,
-    defers: defers,
+    properties: context.properties,
+    members: context.members,
+    defers: context.defers,
     lineEnd: lineEnd
   })
 

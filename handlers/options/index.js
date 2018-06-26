@@ -9,10 +9,15 @@ class OptionHandlers {
         this.__registry[name] = handler
     }
 
-    process (options, context) {
+    process (options, propertyDefinition, context) {
         Object.keys(options).forEach(name => {
             if (this.__registry.hasOwnProperty(name)) {
-                this.__registry[name](options[name], context)
+                try {
+                  this.__registry[name](options[name], propertyDefinition, context)
+                } catch (e) {
+                    console.error('Error processing '+name+' option:', e)
+                  throw e
+                }
             }
         })
     }
