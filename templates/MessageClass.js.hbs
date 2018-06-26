@@ -58,7 +58,24 @@ qx.Class.define('{{classNamespace}}', {
      * @return {{curly true}}{{classNamespace}}{{curly}}
      */
     deserializeBinaryFromReader: function (msg, reader) {
-{{#if deserializer}}      {{&deserializer}}{{/if}}
+{{#if deserializer}}
+      msg.setDeserialized(true){{lineEnd}}
+      while (reader.nextField()) {
+        if (reader.isEndGroup()) {
+          break{{lineEnd}}
+        }
+        var value{{lineEnd}}
+        var field = reader.getFieldNumber(){{lineEnd}}
+        switch (field) {
+{{#each deserializer}}
+          {{&.}}
+{{/each}}
+          default:
+            reader.skipField(){{lineEnd}}
+            break{{lineEnd}}
+        }
+      }
+      return msg{{lineEnd}}{{/if}}
     }
   }{{#if properties}},
 

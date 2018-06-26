@@ -153,11 +153,11 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         }
         propertyDefinition.type = {
           qxType: `${qxType}`,
-          readerCode: list ? `          case ${prop.number}:
+          readerCode: list ? `case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
             msg.get${upperCase}().push(value)${lineEnd}
-            break${lineEnd}` : `          case ${prop.number}:
+            break${lineEnd}` : `case ${prop.number}:
             value = new ${baseNamespace}${prop.typeName}()${lineEnd}
             reader.readMessage(value, ${baseNamespace}${prop.typeName}.deserializeBinaryFromReader)${lineEnd}
             msg.set${upperCase}(value)${lineEnd}
@@ -254,18 +254,18 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     } else if (propertyDefinition.type.pbType) {
       if (list) {
         if (propertyDefinition.type.packed) {
-          propertyDefinition.deserializer.push(`          case ${prop.number}:
+          propertyDefinition.deserializer.push(`case ${prop.number}:
             value = reader.readPacked${propertyDefinition.type.pbType}()${lineEnd}
             msg.get${upperCase}().replace(value)${lineEnd}
             break${lineEnd}`)
         } else {
-          propertyDefinition.deserializer.push(`          case ${prop.number}:
+          propertyDefinition.deserializer.push(`case ${prop.number}:
             value = reader.read${propertyDefinition.type.pbType}()${lineEnd}
             msg.get${upperCase}().push(value)${lineEnd}
             break${lineEnd}`)
         }
       } else {
-        propertyDefinition.deserializer.push(`          case ${prop.number}:
+        propertyDefinition.deserializer.push(`case ${prop.number}:
             value = reader.read${propertyDefinition.type.pbType}()${lineEnd}
             msg.set${upperCase}(value)${lineEnd}
             break${lineEnd}`)
@@ -336,26 +336,9 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     context.defers.push(`statics.ONEOFS[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
   })
 
+  // extract (de-)serializer entries from the properties
   let deserializer = context.properties.filter(entry => entry.deserializer && entry.deserializer.length).map(entry => entry.deserializer.join('\n'))
   let serializer = context.properties.filter(entry => entry.serializer && entry.serializer.length).map(entry => entry.serializer.join('\n'))
-
-  if (deserializer.length) {
-    deserializer = `msg.setDeserialized(true)${lineEnd}
-      while (reader.nextField()) {
-        if (reader.isEndGroup()) {
-          break${lineEnd}
-        }
-        var value${lineEnd}
-        var field = reader.getFieldNumber()${lineEnd}
-        switch (field) {
-${deserializer.join('\n')}
-          default:
-            reader.skipField()${lineEnd}
-            break${lineEnd}
-        }
-      }
-      return msg${lineEnd}`
-  }
 
   // class basics
   let initCode = [`extend: ${config.getExtend('messageType', classNamespace)}`]
