@@ -208,7 +208,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       propertyDefinition.entries = propertyDefinition.entries.concat([
         {key: 'check', value: `'${propertyDefinition.type.qxType}'`},
         {key: 'init', value: prop.defaultValue !== undefined ? prop.defaultValue : 'null'},
-        // {key: 'nullable', value: prop.defaultValue === undefined},
+        {key: 'nullable', value: prop.defaultValue === undefined},
         {key: 'event', value: `'change${upperCase}'`}
       ])
     }
