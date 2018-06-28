@@ -170,7 +170,6 @@ module.exports {
 }
 ```
 
-
 ## Property annotations
 
 The protoc generator supports qooxdoos own annotations on property level by providing an own FieldOption for that purpose.
@@ -180,7 +179,7 @@ You can declare an annotation for a property like this:
 import "node_modules/protoc-gen-qx/protos/extensions.proto";
 
 message User {
-    uint64 uid = 1 [(qx.annotations) = 'primary,test'];
+    uint64 uid = 1 [(qx).annotations = 'primary,test'];
 }
 ```
 
@@ -195,3 +194,54 @@ which will generate this property definition:
   "@": ['primary', 'test']
 },
 ```
+
+## Custom FieldOptions
+
+It is possible to use other FieldOptions from any proto-file as its done with the annotations described above.
+To make them usable a javascript file has to be generated from the proto-file containing the extensions:
+`protoc --js_out=import_style=commonjs,binary:. my-extension-file.proto` and this file needs to be included via 
+the config file: `require: ['my-extension-file_pb']`.
+
+When this is done, custom handlers for the custom field options can be written and must also be added via config file:
+`optionHandlers: ['my-option-handler'].
+
+A simple example for the custom option handler for an option named `nullable`:
+
+```js
+const {setPropEntry} = require('protoc-gen-qx/utils')
+
+module.exports = {
+  name: 'nullable',
+  handler: function (value, propertyDefinition, context) {
+    setPropEntry(propertyDefinition.entries, 'nullable', value)
+  }
+}
+```
+
+is sets the `nullable` value of a property.
+
+Full example using https://github.com/gogo/protobuf/blob/master/gogoproto/gogo.proto:
+
+1. Download gogo.proto file and generate the javascript version from it:
+   `protoc --js_out=import_style=commonjs,binary:. gogo.proto`
+
+2. Include and use it in your proto files:
+
+```proto
+import "gogo.proto";
+
+message Object {
+    string uid = 1 [(gogoproto.nullable) = false];
+}
+```
+
+3. Include the generated gogoproto javascript file and the option handler for the nullable option (see above) into the plugin config (`protoc-gen-qx.config.js`)
+
+```js
+...
+require: ['./gogo_pb'],
+optionHandlers: ['./nullable.js']
+...
+```
+4. Run the generator.
+

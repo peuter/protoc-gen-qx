@@ -32,6 +32,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
   // all the information needed to generate the code
   const context = {
     requirements: [],
+    includes: config.getIncludes('messageType', classNamespace).slice(),
+    implements: config.getImplements('messageType', classNamespace).slice(),
     constructor: [],
     statics: [],
     properties: [],
@@ -342,13 +344,11 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
 
   // class basics
   let initCode = [`extend: ${config.getExtend('messageType', classNamespace)}`]
-  const includes = config.getIncludes('messageType', classNamespace)
-  if (includes.length) {
-    initCode.push(`include: [${includes.join(', ')}]`)
+  if (context.includes.length) {
+    initCode.push(`include: [${context.includes.join(', ')}]`)
   }
-  const interfaces = config.getImplements('messageType', classNamespace)
-  if (interfaces.length) {
-    initCode.push(`implement: [${interfaces.join(', ')}]}`)
+  if (context.implements.length) {
+    initCode.push(`implement: [${context.implements.join(', ')}]}`)
   }
 
   if (serializer.length) {

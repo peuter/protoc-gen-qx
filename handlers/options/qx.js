@@ -1,11 +1,11 @@
-const {setPropEntry} = require('../../utils')
+const {setPropEntry,addAnnotations} = require('../../utils')
 
 module.exports = {
   name: 'qx',
   handler: function (options, propertyDefinition, context) {
     const props = propertyDefinition.entries
     if (options.hasOwnProperty('annotations') && options.annotations) {
-        setPropEntry(props, `'@'`, `['${options.annotations.split(',').map(x => x.trim()).join('\', \'')}']`)
+        addAnnotations(props, options.annotations.split(',').map(x => x.trim()))
       }
       if (options.hasOwnProperty('date') && options.date === true) {
         setPropEntry(props, 'transform', `'_toDate'`)
