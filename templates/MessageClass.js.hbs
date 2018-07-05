@@ -59,7 +59,8 @@ qx.Class.define('{{classNamespace}}', {
      */
     deserializeBinaryFromReader: function (msg, reader) {
 {{#if deserializer}}
-      msg.setDeserialized(true){{lineEnd}}
+      msg.setDeserialized(true){{lineEnd}}{{#if preSerializer}}
+      {{&preSerializer}}{{/if}}
       while (reader.nextField()) {
         if (reader.isEndGroup()) {
           break{{lineEnd}}
@@ -74,7 +75,8 @@ qx.Class.define('{{classNamespace}}', {
             reader.skipField(){{lineEnd}}
             break{{lineEnd}}
         }
-      }
+      }{{#if postSerializer}}
+      {{&postSerializer}}{{/if}}
       return msg{{lineEnd}}{{/if}}
     }
   }{{#if properties}},
