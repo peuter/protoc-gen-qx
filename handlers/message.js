@@ -301,7 +301,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
      * @param obj {var}
      */
     setOneOf${firstUp}: function (obj) {
-      if (${classNamespace}.ONEOFS[${index}].includes(obj.classname)) {
+      if (${classNamespace}.ONEOFS[${index}].hasOwnProperty(obj.classname)) {
         this.set(${classNamespace}.ONEOFS[${index}][obj.classname], obj)${lineEnd}
       } else {
         throw new Error('type ' + obj.classname + ' is invalid for ${oneOf.name}, allowed types are: ' + Object.keys(${classNamespace}.ONEOFS[${index}]).join(', '))${lineEnd}
