@@ -65,6 +65,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     const index = context.oneOfs.length
     context.oneOfs.push(Object.assign({
       types: [],
+      refs: [],
       names: [],
       event: `change${upperCase}`
     }, prop))
@@ -73,7 +74,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       this.set${upperCase}(name)${lineEnd}
       
       // reset all other values
-      ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
+      Object.values(${classNamespace}.ONEOFS[${index}]).forEach(function (prop) {
         if (prop !== name) {
           this.reset(prop)${lineEnd}
         }
@@ -218,6 +219,12 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       const oneOf = context.oneOfs[prop.oneofIndex]
       oneOf.types.push(prop.type)
       oneOf.names.push(prop.name)
+      if (prop.type === 11) {
+        // reference
+        oneOf.refs.push(`${baseNamespace}${prop.typeName}`)
+      } else {
+        oneOf.refs.push('')
+      }
       setPropEntry(propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
     }
 
@@ -294,11 +301,10 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
      * @param obj {var}
      */
     setOneOf${firstUp}: function (obj) {
-      var type = obj.basename.toLowerCase()${lineEnd}
-      if (${classNamespace}.ONEOFS[${index}].includes(type)) {
-        this.set(type, obj)${lineEnd}
+      if (${classNamespace}.ONEOFS[${index}].includes(obj.classname)) {
+        this.set(${classNamespace}.ONEOFS[${index}][obj.classname], obj)${lineEnd}
       } else {
-        throw new Error('type ' + type + ' is invalid for ${oneOf.name}, allowed types are: ' + ${classNamespace}.ONEOFS[${index}].join(', '))${lineEnd}
+        throw new Error('type ' + obj.classname + ' is invalid for ${oneOf.name}, allowed types are: ' + Object.keys(${classNamespace}.ONEOFS[${index}]).join(', '))${lineEnd}
       }
     }`)
       context.statics.push(`/**
@@ -306,7 +312,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
      * @returns {Array} array of type names as string
      */
     getAllowedTypesOf${firstUp}: function () {
-      return this.ONEOFS[${index}]${lineEnd}
+      return Object.values(this.ONEOFS[${index}])${lineEnd}
     }`)
     }
 
@@ -334,10 +340,10 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
 
     // write the one of members
     if (index === 0) {
-      context.statics.unshift(`// array with oneOf property groups
+      context.statics.unshift(`// array with maps with oneOf referenced type as key and property name as value
     ONEOFS: []`)
     }
-    context.defers.push(`statics.ONEOFS[${index}] = ['${oneOf.names.join('\', \'')}']${lineEnd}`)
+    context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(Object.assign({}, ...oneOf.refs.map((n, index) => ({[n]: oneOf.names[index]}))))}${lineEnd}`)
   })
 
   // extract (de-)serializer entries from the properties
