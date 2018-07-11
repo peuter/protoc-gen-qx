@@ -350,7 +350,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     initCode.push(`include: [${context.includes.join(', ')}]`)
   }
   if (context.implements.length) {
-    initCode.push(`implement: [${context.implements.join(', ')}]}`)
+    initCode.push(`implement: [${context.implements.join(', ')}]`)
   }
 
   if (serializer.length) {
