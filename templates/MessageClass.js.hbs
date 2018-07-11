@@ -113,7 +113,7 @@ qx.Class.define('{{classNamespace}}', {
 
   defer: function (statics) {
 {{#each defers}}
-    {{&.}}{{#unless @last}},{{/unless}}
+    {{&.}}
 {{/each}}
   }{{/if}}
 }){{lineEnd}}
