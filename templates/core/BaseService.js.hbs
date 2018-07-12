@@ -58,14 +58,15 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
         metadata: this.__metadata
         // debug: qx.core.Environment.get('qx.debug')
       }{{lineEnd}}
+      var context = this{{lineEnd}}
+      if (typeof args[args.length - 1] === 'object') {
+        context = args.pop(){{lineEnd}}
+      }
       return new qx.Promise(function (resolve, reject) {
         if (serviceDefinition.responseStream === true) {
           // streaming response
-          var context = null{{lineEnd}}
+          
           var callback{{lineEnd}}
-          if (typeof args[args.length - 1] === 'object') {
-            context = args.pop(){{lineEnd}}
-          }
           if (typeof args[args.length - 1] === 'function') {
             callback = args.pop(){{lineEnd}}
           } else {
@@ -98,7 +99,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
             }
           })){{lineEnd}}
         }
-      }, this){{lineEnd}}
+      }, context){{lineEnd}}
     }
   }
 }){{lineEnd}}

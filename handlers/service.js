@@ -21,6 +21,9 @@ const genServiceClass = (service, s, proto) => {
       callbackParams = ', callback, context'
       paramComments.push(`     * @param callback {Function} onMessage callback`)
       paramComments.push(`     * @param context {Object} onMessage callback context`)
+    } else {
+      callbackParams = ', context'
+      paramComments.push(`     * @param context {Object} promise context`)
     }
     members.push(`/**
 ${normalizeComments(findCommentByPath([6, s, 2, r], proto.sourceCodeInfo.locationList), 5)}
