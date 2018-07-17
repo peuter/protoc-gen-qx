@@ -320,16 +320,16 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     } else {
       context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(oneOf.names)}${lineEnd}`)
       context.members.push(`// oneOf property apply
-      _applyOneOf${index}: function (value, old, name) {
-        this.set${firstUp}(name)${lineEnd}
-        
-        // reset all other values
-        ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
-          if (prop !== name) {
-            this.reset(prop)${lineEnd}
-          }
-        }, this)
-      }`)
+    _applyOneOf${index}: function (value, old, name) {
+      this.set${firstUp}(name)${lineEnd}
+      
+      // reset all other values
+      ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
+        if (prop !== name) {
+          this.reset(prop)${lineEnd}
+        }
+      }, this)
+    }`)
     }
 
     context.members.push(`/**
