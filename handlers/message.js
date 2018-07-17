@@ -276,9 +276,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
   context.oneOfs.forEach((oneOf, index) => {
     // try to find a matching type superset
     let complexType = true
-    console.error(oneOf.name)
     oneOf.types.some(entry => {
-      console.error(entry);
       if (entry !== 11) {
         complexType = false
         return true
