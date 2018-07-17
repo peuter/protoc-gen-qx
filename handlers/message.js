@@ -69,17 +69,6 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       names: [],
       event: `change${upperCase}`
     }, prop))
-    context.members.push(`// oneOf property apply
-    _applyOneOf${index}: function (value, old, name) {
-      this.set${upperCase}(name)${lineEnd}
-      
-      // reset all other values
-      Object.values(${classNamespace}.ONEOFS[${index}]).forEach(function (prop) {
-        if (prop !== name) {
-          this.reset(prop)${lineEnd}
-        }
-      }, this)
-    }`)
   })
 
   messageType.fieldList.forEach(prop => {
@@ -287,7 +276,9 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
   context.oneOfs.forEach((oneOf, index) => {
     // try to find a matching type superset
     let complexType = true
+    console.error(oneOf.name)
     oneOf.types.some(entry => {
+      console.error(entry);
       if (entry !== 11) {
         complexType = false
         return true
@@ -314,6 +305,31 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     getAllowedTypesOf${firstUp}: function () {
       return Object.values(this.ONEOFS[${index}])${lineEnd}
     }`)
+      context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(Object.assign({}, ...oneOf.refs.map((n, index) => ({[n]: oneOf.names[index]}))))}${lineEnd}`)
+      context.members.push(`// oneOf property apply
+    _applyOneOf${index}: function (value, old, name) {
+      this.set${firstUp}(name)${lineEnd}
+      
+      // reset all other values
+      Object.values(${classNamespace}.ONEOFS[${index}]).forEach(function (prop) {
+        if (prop !== name) {
+          this.reset(prop)${lineEnd}
+        }
+      }, this)
+    }`)
+    } else {
+      context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(oneOf.names)}${lineEnd}`)
+      context.members.push(`// oneOf property apply
+      _applyOneOf${index}: function (value, old, name) {
+        this.set${firstUp}(name)${lineEnd}
+        
+        // reset all other values
+        ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
+          if (prop !== name) {
+            this.reset(prop)${lineEnd}
+          }
+        }, this)
+      }`)
     }
 
     context.members.push(`/**
@@ -343,7 +359,6 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       context.statics.unshift(`// array with maps with oneOf referenced type as key and property name as value
     ONEOFS: []`)
     }
-    context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(Object.assign({}, ...oneOf.refs.map((n, index) => ({[n]: oneOf.names[index]}))))}${lineEnd}`)
   })
 
   // extract (de-)serializer entries from the properties
