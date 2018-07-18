@@ -84,7 +84,8 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
               else {
                 resolve(message){{lineEnd}}
               }
-            }
+            },
+            debug: {{debugInvoke}}
           })){{lineEnd}}
         }
         else {
@@ -96,7 +97,8 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
               else {
                 resolve(res.message){{lineEnd}}
               }
-            }
+            },
+            debug: {{debugUnary}}
           })){{lineEnd}}
         }
       }, context){{lineEnd}}

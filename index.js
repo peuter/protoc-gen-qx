@@ -23,9 +23,12 @@ webpackConfig.forEach(config => {
   externalResources.push(`"${baseNamespace}/${config.output.filename}"`)
 })
 let template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseService.js.hbs'), 'utf8'))
+const debugApiCalls = config.get('debugApiCalls')
 let baseServiceClass = template({
   baseNamespace: baseNamespace,
-  lineEnd: lineEnd
+  lineEnd: lineEnd,
+  debugUnary: debugApiCalls === true || debugApiCalls === 'single',
+  debugInvoke: debugApiCalls === true || debugApiCalls === 'stream'
 })
 
 // extensions must be required before parsing

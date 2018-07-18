@@ -34,7 +34,9 @@ const defaultConfig = {
   // these classes are registered in the proto.util.ValidationFactory
   validatorClasses: [],
   // Field option handlers (for example see: handlers/options/qx.js)
-  optionHandlers: []
+  optionHandlers: [],
+  // activate grpc client debugging mode: [true] => all requests, [false] => no debugging, ['stream'] => only streaming requests, ['single'] => only non-streaming requests
+  debugApiCalls: false
 }
 
 class Config {
