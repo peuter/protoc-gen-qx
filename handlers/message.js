@@ -376,6 +376,10 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     serializer[0] = `var ${serializer[0].trim()}`
   }
 
+  if (config.get('disableValidatorsInConstructor') === true) {
+    context.constructor.unshift('this.$$skipPropertyValidation = false' + lineEnd)
+  }
+
   const code = template({
     classComment: getClassComment(messageType, s, proto, 4, context.requirements),
     classNamespace: classNamespace,
@@ -389,7 +393,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     properties: context.properties,
     members: context.members,
     defers: context.defers,
-    lineEnd: lineEnd
+    lineEnd: lineEnd,
+    disableValidatorsInConstructor: config.get('disableValidatorsInConstructor')
   })
 
   let result = [{

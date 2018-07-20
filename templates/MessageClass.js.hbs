@@ -14,7 +14,8 @@ qx.Class.define('{{classNamespace}}', {
 {{#each constructorCode}}
     {{&.}}
 {{/each}}
-    this.base(arguments, props){{lineEnd}}
+    this.base(arguments, props){{lineEnd}}{{#if disableValidatorsInConstructor}}
+    this.$$skipPropertyValidation = false{{lineEnd}}{{/if}}
   },
 {{/if}}
 
