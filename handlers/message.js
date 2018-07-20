@@ -377,7 +377,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
   }
 
   if (config.get('disableValidatorsInConstructor') === true) {
-    context.constructor.unshift('this.$$skipPropertyValidation = false' + lineEnd)
+    context.constructor.unshift('this.$$skipPropertyValidation = true' + lineEnd)
   }
 
   const code = template({

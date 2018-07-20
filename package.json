@@ -54,5 +54,5 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "protoc": "protoc -Iprotos --js_out=import_style=commonjs,binary:. extensions.proto"
   },
-  "version": "0.15.0"
+  "version": "0.15.1"
 }
