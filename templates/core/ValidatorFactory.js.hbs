@@ -45,11 +45,39 @@ qx.Class.define('{{baseNamespace}}.util.ValidatorFactory', {
     __parseMethodCall: function (methodCall) {
       var match = this.__regex.exec(methodCall){{lineEnd}}
       if (match) {
+        var params = []
+        if (match[2]) {
+          var paramString = match[2]{{lineEnd}}
+          var mode = 'normal'{{lineEnd}}
+          var param = ''{{lineEnd}}
+          for (var i = 0, l = paramString.length; i < l; i++) {
+            var c = paramString[i]{{lineEnd}}
+            if (c === '[' && (i === 0 || paramString[i-1] !== '\\')) {
+              mode = 'json'{{lineEnd}}
+              param = c{{lineEnd}}
+            } else if (c === ']' && (i === 0 || paramString[i-1] !== '\\')) {
+              mode = 'normal'{{lineEnd}}
+              param += c{{lineEnd}}
+              params.push(qx.lang.Json.parse(param.trim())){{lineEnd}}
+              param = ''{{lineEnd}}
+            } else {
+              if (mode === 'normal' && c === ',') {
+                if (param) {
+                  params.push(qx.lang.Json.parse(param.trim())){{lineEnd}}
+                  param = ''
+                }
+              } else {
+                param += c{{lineEnd}}
+              }
+            }
+          }
+          if (param) {
+            params.push(qx.lang.Json.parse(param.trim())){{lineEnd}}
+          }
+        }
         return {
           name: match[1],
-          params: match[2] ? match[2].split(',').map(function (param) {
-            return param.trim(){{lineEnd}}
-          }) : []
+          params: params
         }
       }
       return null{{lineEnd}}
@@ -61,4 +89,4 @@ qx.Class.define('{{baseNamespace}}.util.ValidatorFactory', {
     statics.registerValidatorClass({{&.}}){{../lineEnd}}
   {{/each}} 
   }
-});
+}){{lineEnd}}
