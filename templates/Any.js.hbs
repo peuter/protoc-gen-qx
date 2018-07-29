@@ -197,7 +197,11 @@ qx.Class.define('{{baseNamespace}}.google.protobuf.Any', {
     },
 
     _transformAny: function (value) {
-      return this.__valueClazz.deserializeBinary(value)
+      if (!value instanceof this.__valueClazz) {
+        return this.__valueClazz.deserializeBinary(value)
+      } else {
+        return value
+      }
     }
   }
 })
