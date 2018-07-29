@@ -10,6 +10,7 @@ const config = require('./config')
 const {CodeGeneratorRequest, CodeGeneratorResponse, CodeGeneratorResponseError} = require('protoc-plugin')
 const baseNamespace = config.get('baseNamespace')
 const handlebars = require('handlebars')
+const merge = require('lodash.merge')
 const handlers = {
   serviceList: require('./handlers/service'),
   enumTypeList: require('./handlers/enum'),
@@ -69,11 +70,24 @@ CodeGeneratorRequest()
       "proto/grpc-web-client.js"
     ].filter(entry => !skipDeps.includes(entry.split('/').pop()))
 
-    let externalScriptsCode = '';
+    const manifest = merge({
+      info: {},
+      provides: {
+        namespace: baseNamespace,
+        encoding: "utf-8",
+        class: "source/class",
+        resource: "source/resource",
+        type: "library"
+      }
+    }, config.get('manifest'))
     if (external.length > 0) {
-      externalScriptsCode = `  "script": [
-        "${external.join('",\n        "')}"
-      ]`
+      if (!manifest.externalResources) {
+        manifest.externalResources = {}
+      }
+      if (!manifest.externalResources.scripts) {
+        manifest.externalResources.scripts = []
+      }
+      manifest.externalResources.scripts = manifest.externalResources.scripts.concat(external)
     }
 
     const files = [{
@@ -81,19 +95,7 @@ CodeGeneratorRequest()
       content: baseServiceClass
     }, {
       name: 'Manifest.json',
-      content: `{
-  "info": {},
-  "provides": {
-    "namespace"   : "${baseNamespace}",
-    "encoding"    : "utf-8",
-    "class"       : "source/class",
-    "resource"    : "source/resource",
-    "type"        : "library"
-  },
-   "externalResources": {
-    ${externalScriptsCode}
-   }
-}`
+      content: JSON.stringify(manifest, null, 2)
     }]
 
     protos.forEach(proto => {

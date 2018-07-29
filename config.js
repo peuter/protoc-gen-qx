@@ -38,7 +38,9 @@ const defaultConfig = {
   // activate grpc client debugging mode: [true] => all requests, [false] => no debugging, ['stream'] => only streaming requests, ['single'] => only non-streaming requests
   debugApiCalls: false,
   // do not validate property values while the object is beeing initialized
-  disableValidatorsInConstructor: false
+  disableValidatorsInConstructor: false,
+  // override settings for generated Manifest.json
+  manifest: {}
 }
 
 class Config {
