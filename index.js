@@ -109,6 +109,7 @@ CodeGeneratorRequest()
         content: JSON.stringify(manifest, null, 2)
       })
     }
+    const whitelist = config.get('whitelist')
 
     protos.forEach(proto => {
       if (parameters.dump === true) {
@@ -119,7 +120,14 @@ CodeGeneratorRequest()
       }
       Object.keys(handlers).forEach( propName => {
         if (proto[propName]) {
-          proto[propName].forEach((item, s) => {
+          let items = proto[propName]
+          if (whitelist.hasOwnProperty(proto.name)) {
+            items = items.filter(item => {
+              return whitelist[proto.name].indexOf(item.name) >= 0
+            })
+          }
+        
+          items.forEach((item, s) => {
             handlers[propName](item, s, proto).forEach(entry => {
               files.push({
                 name: `${sourceDir}/class/${entry.namespace.split('.').join('/')}.js`,

@@ -222,7 +222,6 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     }
 
     if (prop.options) {
-      console.error(prop.options)
       optionHandler.process(prop.options, propertyDefinition, context)
     }
     context.properties.push(propertyDefinition)

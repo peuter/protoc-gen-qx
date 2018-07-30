@@ -43,7 +43,8 @@ const defaultConfig = {
   // do not validate property values while the object is beeing initialized
   disableValidatorsInConstructor: false,
   // override settings for generated Manifest.json
-  manifest: {}
+  manifest: {},
+  whitelist: {}
 }
 
 class Config {
