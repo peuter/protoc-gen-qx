@@ -31,6 +31,13 @@ module.exports = {
     defaultValue: 0,
     packed: true
   },
+  6: {
+    qxType: 'Number',
+    pbType: 'Double',
+    emptyComparison: ' !== null',
+    defaultValue: 0,
+    packed: true
+  },
   8: {
     qxType: 'Boolean',
     pbType: 'Bool',

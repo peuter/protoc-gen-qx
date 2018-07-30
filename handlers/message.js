@@ -179,7 +179,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       }
     }
     if (!propertyDefinition.type) {
-      console.error('undefined type:', prop)
+      console.error('undefined type:', prop, classNamespace)
       return
     }
 
@@ -222,6 +222,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     }
 
     if (prop.options) {
+      console.error(prop.options)
       optionHandler.process(prop.options, propertyDefinition, context)
     }
     context.properties.push(propertyDefinition)

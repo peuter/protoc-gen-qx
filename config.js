@@ -4,6 +4,9 @@ const merge = require('lodash.merge')
 
 const defaultConfig = {
   baseNamespace: 'proto',
+  embed: false, // generate extra library with Manifest.json or embed into existing sources (no Manifest generation)
+  sourceDir: 'source', 
+  skipCoreFiles: false, // do not generate the .core.* files
   messageType: {
     '*': {
       // relative to baseNamespace (starting with .)

@@ -38,6 +38,11 @@ config.get('require').forEach(dep => {
   require(depPath)
 })
 
+let sourceDir = config.get('sourceDir')
+if (sourceDir && !sourceDir.endsWith('/')) {
+  sourceDir += '/'
+}
+
 // register option handlers
 const optionHandler = require('./handlers/options/index')
 let {name, handler} = require('./handlers/options/qx')
@@ -62,7 +67,7 @@ CodeGeneratorRequest()
         parameters[key] = value
       })
     }
-
+    
     const protos = req.protoFileList.filter(p => req.fileToGenerateList.indexOf(p.name) !== -1)
     const skipDeps = config.get('skipDeps')
     let external = [
@@ -70,33 +75,40 @@ CodeGeneratorRequest()
       "proto/grpc-web-client.js"
     ].filter(entry => !skipDeps.includes(entry.split('/').pop()))
 
-    const manifest = merge({
-      info: {},
-      provides: {
-        namespace: baseNamespace,
-        encoding: "utf-8",
-        class: "source/class",
-        resource: "source/resource",
-        type: "library"
-      }
-    }, config.get('manifest'))
-    if (external.length > 0) {
-      if (!manifest.externalResources) {
-        manifest.externalResources = {}
-      }
-      if (!manifest.externalResources.scripts) {
-        manifest.externalResources.scripts = []
-      }
-      manifest.externalResources.scripts = manifest.externalResources.scripts.concat(external)
+    const files = []
+
+    if (!config.get('skipCoreFiles')) {
+      files.push({
+        name: `${sourceDir}/class/${baseNamespace}/core/BaseService.js`,
+        content: baseServiceClass
+      })
     }
 
-    const files = [{
-      name: `source/class/${baseNamespace}/core/BaseService.js`,
-      content: baseServiceClass
-    }, {
-      name: 'Manifest.json',
-      content: JSON.stringify(manifest, null, 2)
-    }]
+    if (config.get('embed') !== true) {
+      const manifest = merge({
+        info: {},
+        provides: {
+          namespace: baseNamespace,
+          encoding: "utf-8",
+          class: sourceDir + "class",
+          resource: sourceDir + "resource",
+          type: "library"
+        }
+      }, config.get('manifest'))
+      if (external.length > 0) {
+        if (!manifest.externalResources) {
+          manifest.externalResources = {}
+        }
+        if (!manifest.externalResources.script) {
+          manifest.externalResources.script = []
+        }
+        manifest.externalResources.script = manifest.externalResources.script.concat(external)
+      }
+      files.push({
+        name: 'Manifest.json',
+        content: JSON.stringify(manifest, null, 2)
+      })
+    }
 
     protos.forEach(proto => {
       if (parameters.dump === true) {
@@ -110,7 +122,7 @@ CodeGeneratorRequest()
           proto[propName].forEach((item, s) => {
             handlers[propName](item, s, proto).forEach(entry => {
               files.push({
-                name: `source/class/${entry.namespace.split('.').join('/')}.js`,
+                name: `${sourceDir}/class/${entry.namespace.split('.').join('/')}.js`,
                 content: entry.code
               })
             })
@@ -119,47 +131,50 @@ CodeGeneratorRequest()
       })
     })
 
-    template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseMessage.js.hbs'), 'utf8'))
-    let baseMessageClass = template({
-      baseNamespace: baseNamespace,
-      lineEnd: lineEnd,
-      timestampSupport: !!config.get('timestampSupport'),
-      defer: config.get('skipDepLoadingFallback') === true
-        ? ''
-        : `,
+    if (!config.get('skipCoreFiles')) {
 
-  defer: function (statics) {
-    if (!window.grpc) {
-      // load dependencies
-      var dynLoader = new qx.util.DynamicScriptLoader([
-        qx.util.ResourceManager.getInstance().toUri(${externalResources.join('),\n      qx.util.ResourceManager.getInstance().toUri(')})
-      ]);
-   
-      qx.bom.Lifecycle.onReady(function () {
-        dynLoader.start().catch(function (err) {
-          qx.log.Logger.error(statics, 'failed to load scripts', err);
-        });
-      }, this);
-    }
-  }`
-    })
-
-    files.push({
-      name: `source/class/${baseNamespace}/core/BaseMessage.js`,
-      content: baseMessageClass
-    })
-
-    if (config.get('validatorClasses').length) {
-      template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'ValidatorFactory.js.hbs'), 'utf8'))
-      let validatorFactoryClass = template({
+      template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'BaseMessage.js.hbs'), 'utf8'))
+      let baseMessageClass = template({
         baseNamespace: baseNamespace,
-        validatorClasses: config.get('validatorClasses').filter(clazz => clazz !== 'qx.util.Validate'),
         lineEnd: lineEnd,
+        timestampSupport: !!config.get('timestampSupport'),
+        defer: config.get('skipDepLoadingFallback') === true
+          ? ''
+          : `,
+
+    defer: function (statics) {
+      if (!window.grpc) {
+        // load dependencies
+        var dynLoader = new qx.util.DynamicScriptLoader([
+          qx.util.ResourceManager.getInstance().toUri(${externalResources.join('),\n      qx.util.ResourceManager.getInstance().toUri(')})
+        ]);
+    
+        qx.bom.Lifecycle.onReady(function () {
+          dynLoader.start().catch(function (err) {
+            qx.log.Logger.error(statics, 'failed to load scripts', err);
+          });
+        }, this);
+      }
+    }`
       })
+
       files.push({
-        name: `source/class/${baseNamespace}/util/ValidatorFactory.js`,
-        content: validatorFactoryClass
+        name: `${sourceDir}/class/${baseNamespace}/core/BaseMessage.js`,
+        content: baseMessageClass
       })
+
+      if (config.get('validatorClasses').length) {
+        template = handlebars.compile(fs.readFileSync(path.join(__dirname, 'templates', 'core', 'ValidatorFactory.js.hbs'), 'utf8'))
+        let validatorFactoryClass = template({
+          baseNamespace: baseNamespace,
+          validatorClasses: config.get('validatorClasses').filter(clazz => clazz !== 'qx.util.Validate'),
+          lineEnd: lineEnd,
+        })
+        files.push({
+          name: `${sourceDir}/class/${baseNamespace}/util/ValidatorFactory.js`,
+          content: validatorFactoryClass
+        })
+      }
     }
 
     if (parameters.skipDeps !== true) {
@@ -178,7 +193,7 @@ CodeGeneratorRequest()
           compiler.run((err, stats) => {
             if (err) reject(err)
             files.push({
-              name: `source/resource/${baseNamespace}/${config.output.filename}`,
+              name: `${sourceDir}/resource/${baseNamespace}/${config.output.filename}`,
               content: stats.compilation.assets[config.output.filename].source()
             })
             resolve()
