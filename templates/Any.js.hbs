@@ -193,7 +193,7 @@ qx.Class.define('{{baseNamespace}}.google.protobuf.Any', {
     __valueClazz: null,
 
     _applyType_url: function (value) {
-      this.__valueClazz = qx.Class.getByName('{{baseNamespace}}.' + value.split('/').pop())
+      this.__valueClazz = qx.Class.getByName(value.split('/').pop())
     },
 
     _transformAny: function (value) {

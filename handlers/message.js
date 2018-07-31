@@ -144,6 +144,9 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           qxType = 'Date'
           propertyDefinition.writerTransform = `
       f = new ${baseNamespace}${prop.typeName}({seconds: '' + Math.round(f.getTime()/1000), nanos: (f.getTime() - Math.round(f.getTime()/1000) * 1000000)})${lineEnd}`
+        } else if (prop.typeName === '.google.protobuf.Any') {
+          // add requirement
+          context.requirements.push(`@require(${baseNamespace}${prop.typeName})`)
         }
         propertyDefinition.type = {
           qxType: `${qxType}`,
