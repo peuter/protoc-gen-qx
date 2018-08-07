@@ -82,6 +82,18 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
     },
 
     /**
+     * Parses JSON strings.
+     * @returns {var}
+     * @protected
+     */
+    _fromJson: function (value) {
+      if (qx.lang.Type.isString(value)) {
+        return qx.lang.Json.parse(value){{lineEnd}}
+      }
+      return value{{lineEnd}}
+    },
+
+    /**
      * Transforms a string to a Date object.
      * @protected
      */

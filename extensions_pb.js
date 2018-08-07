@@ -62,7 +62,7 @@ proto.QxFieldOptions.prototype.toObject = function(opt_includeInstance) {
 proto.QxFieldOptions.toObject = function(includeInstance, msg) {
   var f, obj = {
     annotations: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    date: jspb.Message.getFieldWithDefault(msg, 2, false),
+    type: jspb.Message.getFieldWithDefault(msg, 2, ""),
     validate: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
@@ -105,8 +105,8 @@ proto.QxFieldOptions.deserializeBinaryFromReader = function(msg, reader) {
       msg.setAnnotations(value);
       break;
     case 2:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setDate(value);
+      var value = /** @type {string} */ (reader.readString());
+      msg.setType(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
@@ -148,9 +148,9 @@ proto.QxFieldOptions.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getDate();
-  if (f) {
-    writer.writeBool(
+  f = message.getType();
+  if (f.length > 0) {
+    writer.writeString(
       2,
       f
     );
@@ -181,19 +181,17 @@ proto.QxFieldOptions.prototype.setAnnotations = function(value) {
 
 
 /**
- * optional bool date = 2;
- * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
- * You should avoid comparisons like {@code val === true/false} in those cases.
- * @return {boolean}
+ * optional string type = 2;
+ * @return {string}
  */
-proto.QxFieldOptions.prototype.getDate = function() {
-  return /** @type {boolean} */ (jspb.Message.getFieldWithDefault(this, 2, false));
+proto.QxFieldOptions.prototype.getType = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
-/** @param {boolean} value */
-proto.QxFieldOptions.prototype.setDate = function(value) {
-  jspb.Message.setProto3BooleanField(this, 2, value);
+/** @param {string} value */
+proto.QxFieldOptions.prototype.setType = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -216,7 +214,7 @@ proto.QxFieldOptions.prototype.setValidate = function(value) {
 /**
  * A tuple of {field number, class constructor} for the extension
  * field named `qx`.
- * @type {!jspb.ExtensionFieldInfo<!proto.QxFieldOptions>}
+ * @type {!jspb.ExtensionFieldInfo.<!proto.QxFieldOptions>}
  */
 proto.qx = new jspb.ExtensionFieldInfo(
     100001,

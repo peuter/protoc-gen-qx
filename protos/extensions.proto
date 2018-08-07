@@ -3,7 +3,7 @@ import "google/protobuf/descriptor.proto";
 
 message QxFieldOptions {
     string annotations = 1;
-    bool date = 2;
+    string type = 2;
     string validate = 3;
 }
 
