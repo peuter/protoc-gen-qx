@@ -92,7 +92,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
           grpc.unary(serviceDefinition, Object.assign(config, {
             onEnd: function (res) {
               if (res.status !== grpc.Code.OK) {
-                reject(new Error(res.statusMessage)){{lineEnd}}
+                reject(new Error('RPC ' + serviceDefinition.methodName + ' returned an error: ' + res.statusMessage)){{lineEnd}}
               }
               else {
                 resolve(res.message){{lineEnd}}
