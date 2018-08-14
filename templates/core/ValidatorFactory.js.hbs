@@ -43,7 +43,7 @@ qx.Class.define('{{baseNamespace}}.util.ValidatorFactory', {
     },
 
     __parseMethodCall: function (methodCall) {
-      var match = this.__regex.exec(methodCall){{lineEnd}}
+      var match = this.__regex.exec(methodCall.replace(/´/g, '"')){{lineEnd}}
       if (match) {
         var params = []
         if (match[2]) {
