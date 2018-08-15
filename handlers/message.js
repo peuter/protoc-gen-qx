@@ -36,6 +36,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     implements: config.getImplements('messageType', classNamespace).slice(),
     constructor: [],
     statics: [],
+    events: [],
     properties: [],
     preSerializer: '',
     serializer: [],
@@ -287,6 +288,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     })
     const firstUp = oneOf.name.substring(0, 1).toUpperCase() + oneOf.name.substring(1)
     // experimental add a shortcut function to generically set the oneof object
+    context.events.push(`'changeOneOf${firstUp}': 'qx.event.type.Data'`);
+
     if (complexType) {
       context.members.push(`/**
      * Set value for oneOf field '${oneOf.name}'. Tries to detect the object type and call the correct setter.
@@ -310,26 +313,40 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       context.members.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       this.set${firstUp}(name)${lineEnd}
+
+      var oldValue = old ? this.get(old) : null${lineEnd}
       
       // reset all other values
       Object.values(${classNamespace}.ONEOFS[${index}]).forEach(function (prop) {
         if (prop !== name) {
           this.reset(prop)${lineEnd}
         }
-      }, this)
+      }, this)${lineEnd}
+
+      var newValue = this.getOneOfValue()${lineEnd}
+      if (oldValue !== newValue) {
+        this.fireDataEvent('changeOneOfValue', newValue, oldValue)${lineEnd}
+      }
     }`)
     } else {
       context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(oneOf.names)}${lineEnd}`)
       context.members.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       this.set${firstUp}(name)${lineEnd}
+
+      var oldValue = old ? this.get(old) : null${lineEnd}
       
       // reset all other values
       ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
         if (prop !== name) {
           this.reset(prop)${lineEnd}
         }
-      }, this)
+      }, this)${lineEnd}
+
+      var newValue = this.getOneOfValue()${lineEnd}
+      if (oldValue !== newValue) {
+        this.fireDataEvent('changeOneOfValue', newValue, oldValue)${lineEnd}
+      }
     }`)
     }
 
@@ -389,6 +406,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     initCode: initCode,
     constructorCode: context.constructor,
     statics: context.statics,
+    events: context.events,
     serializer: serializer,
     preSerializer: context.preSerializer,
     deserializer: deserializer,
