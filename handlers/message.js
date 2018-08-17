@@ -314,18 +314,19 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     _applyOneOf${index}: function (value, old, name) {
       this.set${firstUp}(name)${lineEnd}
 
-      var oldValue = old ? this.get(old) : null${lineEnd}
-      
+      var oldValue = old${lineEnd}
       // reset all other values
       Object.values(${classNamespace}.ONEOFS[${index}]).forEach(function (prop) {
         if (prop !== name) {
+          if (this.get(prop)) {
+            old = this.get(prop)${lineEnd}
+          }
           this.reset(prop)${lineEnd}
         }
       }, this)${lineEnd}
 
-      var newValue = this.getOneOfValue()${lineEnd}
-      if (oldValue !== newValue) {
-        this.fireDataEvent('changeOneOfValue', newValue, oldValue)${lineEnd}
+      if (value !== oldValue) {
+        this.fireDataEvent('changeOneOf${firstUp}', value, oldValue)${lineEnd}
       }
     }`)
     } else {
@@ -333,19 +334,20 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       context.members.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
       this.set${firstUp}(name)${lineEnd}
-
-      var oldValue = old ? this.get(old) : null${lineEnd}
       
+      var oldValue = old${lineEnd}
       // reset all other values
       ${classNamespace}.ONEOFS[${index}].forEach(function (prop) {
         if (prop !== name) {
+          if (this.get(prop)) {
+            old = this.get(prop)${lineEnd}
+          }
           this.reset(prop)${lineEnd}
         }
       }, this)${lineEnd}
 
-      var newValue = this.getOneOfValue()${lineEnd}
-      if (oldValue !== newValue) {
-        this.fireDataEvent('changeOneOfValue', newValue, oldValue)${lineEnd}
+      if (value !== oldValue) {
+        this.fireDataEvent('changeOneOf${firstUp}', value, oldValue)${lineEnd}
       }
     }`)
     }
