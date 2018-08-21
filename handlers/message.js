@@ -119,6 +119,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
           // find the nestedType declaration
           const nestedTypeName = prop.typeName.split('.').pop();
           const nestedType = messageType.nestedTypeList.find(nType => nType.name === nestedTypeName);
+
+          prop.typeName = prop.typeName.replace(`.${className}.`, `.${className.substring(0, 1).toLowerCase()}${className.substring(1)}.`)
           
           // check if this is a map type
           isMap = nestedType && nestedType.options && nestedType.options.mapEntry === true
@@ -133,9 +135,37 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       return this.get${upperCase}().toArray().find(function (mapEntry) {
         return mapEntry.getKey() === key${lineEnd}
       }, this)${lineEnd}
+    },
+    
+    /**
+     * Set ${prop.name} map entry value by key. If the entry does not exists yet, it will be added.
+     * 
+     * @param key {String} map key
+     * @param value {var} value to set
+     */
+    set${upperCase}ByKey: function (key, value) {
+      var entry = this.get${upperCase}ByKey(key)${lineEnd}
+      if (entry) {
+        entry.setValue(value);
+      } else {
+        // add new entry
+        this.get${upperCase}().push(new ${baseNamespace}${prop.typeName}({key: key, value: value}))${lineEnd}
+      }
+    },
+    
+    /**
+     * Delete ${prop.name} map entry by key.
+     * 
+     * @param key {String} map key
+     */
+    reset${upperCase}ByKey: function (key) {
+      var entry = this.get${upperCase}ByKey(key)${lineEnd}
+      if (entry) {
+        this.get${upperCase}().remove(entry);
+      }
     }`)
           }
-          prop.typeName = prop.typeName.replace(`.${className}.`, `.${className.substring(0, 1).toLowerCase()}${className.substring(1)}.`)
+          
           // add to requirements
           context.requirements.push(`@require(${baseNamespace}${prop.typeName})`)
         }
