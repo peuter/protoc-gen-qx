@@ -18,6 +18,47 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
 
   /*
   *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics: {
+    __grpcErrorHandlers: {},
+
+    /**
+     * Register an error handler for a specified GRPC error code.
+     * The handler will be called when an GRPC-RPC response returned that code 
+     * like this handler(errorCode, errorMessage)
+     * @param errorCode {Number} grpc error code
+     * @param handler {Function} callback that should be executed in error case 
+     * @param context {Object} context of the callback
+     */
+    registerGrpcErrorHandler: function (errorCode, handler, context) {
+      this.__grpcErrorHandlers[errorCode] = {
+        callback: handler,
+        context: context || this
+      }{{lineEnd}}
+    },
+
+    /**
+     * Unregister an error handler for a specified GRPC error code.
+     * @param errorCode {Number} grpc error code
+     */
+    unregisterGrpcErrorHandler: function (errorCode) {
+      delete this.__grpcErrorHandlers[errorCode]{{lineEnd}}
+    },
+
+    /**
+     * Get an error handler for a specified GRPC error code.
+     * @param errorCode {Number} grpc error code
+     * @return {Map|null}
+     */
+    getErrorHandler: function (errorCode) {
+      return this.__grpcErrorHandlers[errorCode]{{lineEnd}}
+    }
+  },
+
+  /*
+  *****************************************************************************
      PROPERTIES
   *****************************************************************************
   */
@@ -79,7 +120,13 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
             onMessage: callback.bind(context),
             onEnd: function (code, message, trailers) {
               if (code !== grpc.Code.OK) {
-                reject(new Error(message)){{lineEnd}}
+                var errorHandler = {{baseNamespace}}.core.BaseService.getErrorHandler(code){{lineEnd}}
+                if (errorHandler) {
+                  errorHandler.callback.call(errorHandler.context, code, message){{lineEnd}}
+                  reject(){{lineEnd}}
+                } else {
+                  reject(new Error(message)){{lineEnd}}
+                }
               }
               else {
                 resolve(message){{lineEnd}}
@@ -92,7 +139,13 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
           grpc.unary(serviceDefinition, Object.assign(config, {
             onEnd: function (res) {
               if (res.status !== grpc.Code.OK) {
-                reject(new Error('RPC ' + serviceDefinition.methodName + ' returned an error: ' + res.statusMessage)){{lineEnd}}
+                var errorHandler = {{baseNamespace}}.core.BaseService.getErrorHandler(code){{lineEnd}}
+                if (errorHandler) {
+                  errorHandler.callback.call(errorHandler.context, res.status, res.statusMessage){{lineEnd}}
+                  reject(){{lineEnd}}
+                } else {
+                  reject(new Error('RPC ' + serviceDefinition.methodName + ' returned an error: ' + res.statusMessage)){{lineEnd}}
+                }
               }
               else {
                 resolve(res.message){{lineEnd}}
