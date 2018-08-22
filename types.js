@@ -2,7 +2,7 @@ module.exports = {
   2: {
     qxType: 'Number',
     pbType: 'Float',
-    emptyComparison: ' !== null',
+    emptyComparison: ' !== 0',
     defaultValue: 0,
     packed: true
   },
@@ -34,7 +34,7 @@ module.exports = {
   6: {
     qxType: 'Number',
     pbType: 'Double',
-    emptyComparison: ' !== null',
+    emptyComparison: ' !== 0',
     defaultValue: 0,
     packed: true
   },
