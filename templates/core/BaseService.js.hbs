@@ -139,7 +139,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
           grpc.unary(serviceDefinition, Object.assign(config, {
             onEnd: function (res) {
               if (res.status !== grpc.Code.OK) {
-                var errorHandler = {{baseNamespace}}.core.BaseService.getErrorHandler(code){{lineEnd}}
+                var errorHandler = {{baseNamespace}}.core.BaseService.getErrorHandler(res.status){{lineEnd}}
                 if (errorHandler) {
                   errorHandler.callback.call(errorHandler.context, res.status, res.statusMessage){{lineEnd}}
                   reject(){{lineEnd}}
