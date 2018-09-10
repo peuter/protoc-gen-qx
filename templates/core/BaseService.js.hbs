@@ -110,7 +110,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
         metadata: this.__metadata
         // debug: qx.core.Environment.get('qx.debug')
       }{{lineEnd}}
-      var context = this{{lineEnd}}
+      var context = self = this{{lineEnd}}
       if (typeof args[args.length - 1] === 'object') {
         context = args.pop(){{lineEnd}}
       }
@@ -128,9 +128,9 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
             throw Error('no payload defined'){{lineEnd}}
           }
           var onMessageCallback = callback.bind(context){{lineEnd}}
-          if (this.__postRpcHooks.hasOwnProperty(serviceDefinition.methodName)) {
+          if (self.__postRpcHooks.hasOwnProperty(serviceDefinition.methodName)) {
             onMessageCallback = function (message) {
-              var entry = this.__postRpcHooks[serviceDefinition.methodName]{{lineEnd}}
+              var entry = self.__postRpcHooks[serviceDefinition.methodName]{{lineEnd}}
               message = entry[0].call(entry[1], message){{lineEnd}}
               callback.call(context, message){{lineEnd}}
             }
@@ -148,10 +148,6 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
                 }
               }
               else {
-                if (this.__postRpcHooks.hasOwnProperty(serviceDefinition.methodName)) {
-                  var entry = this.__postRpcHooks[serviceDefinition.methodName]{{lineEnd}}
-                  message = entry[0].call(entry[1], message){{lineEnd}}
-                }
                 resolve(message){{lineEnd}}
               }
             },
@@ -171,6 +167,10 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
                 }
               }
               else {
+                if (self.__postRpcHooks.hasOwnProperty(serviceDefinition.methodName)) {
+                  var entry = self.__postRpcHooks[serviceDefinition.methodName]{{lineEnd}}
+                  message = entry[0].call(entry[1], message){{lineEnd}}
+                }
                 resolve(res.message){{lineEnd}}
               }
             },
