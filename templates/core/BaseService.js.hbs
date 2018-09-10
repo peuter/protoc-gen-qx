@@ -169,7 +169,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseService', {
               else {
                 if (self.__postRpcHooks.hasOwnProperty(serviceDefinition.methodName)) {
                   var entry = self.__postRpcHooks[serviceDefinition.methodName]{{lineEnd}}
-                  message = entry[0].call(entry[1], message){{lineEnd}}
+                  res.message = entry[0].call(entry[1], res.message){{lineEnd}}
                 }
                 resolve(res.message){{lineEnd}}
               }
