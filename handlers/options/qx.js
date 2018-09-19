@@ -17,7 +17,7 @@ module.exports = {
           if (propertyDefinition.type.pbType === 'String') {
             // use RFC 3339 format
             propertyDefinition.writerTransform = `
-      f = f instanceof Date ? f.toISOString() : ''${context.lineEnd}`
+      f = ${context.baseNamespace}.core.BaseMessage.toISOString(f)${context.lineEnd}`
           } else {
             // use timestamp
             propertyDefinition.writerTransform = `

@@ -19,6 +19,26 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
 
   /*
   *****************************************************************************
+     STATICS
+  *****************************************************************************
+  */
+  statics: {
+    /**
+     * Convert date from local timezone to an UTC ISO string.
+     * @param date {Date?}
+     */
+    toISOString: function (date) {
+      if (date instanceof Date) {
+        var tzoffset = (new Date()).getTimezoneOffset() * 60000{{lineEnd}} //offset in milliseconds
+        return (new Date(date.getTime() - tzoffset)).toISOString(){{lineEnd}}
+      } else {
+        return ''{{lineEnd}}
+      }
+    }
+  },
+
+  /*
+  *****************************************************************************
      PROPERTIES
   *****************************************************************************
   */
