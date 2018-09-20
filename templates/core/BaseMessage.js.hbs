@@ -34,6 +34,22 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
       } else {
         return ''{{lineEnd}}
       }
+    },
+
+    /**
+     * Convert from UTC ISO string to date object.
+     * @param date {String?}
+     */
+    fromISOString: function (date) {
+      if (qx.lang.Type.isString(date) && date) {
+        date = new Date(date){{lineEnd}}
+      }
+      if (date instanceof Date) {
+        var tzoffset = date.getTimezoneOffset() * 60000{{lineEnd}} //offset in milliseconds
+        return (new Date(date.getTime() + tzoffset)){{lineEnd}}
+      } else {
+        return null{{lineEnd}}
+      }
     }
   },
 
