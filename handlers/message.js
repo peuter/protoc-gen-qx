@@ -46,7 +46,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     members: [],
     defers: [],
     lineEnd: lineEnd,
-    baseNamespace: baseNamespace
+    baseNamespace: baseNamespace,
+    useUTC: config.get('useUTC')
   }
 
   messageType.enumTypeList.forEach(entry => {
@@ -447,7 +448,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
     members: context.members,
     defers: context.defers,
     lineEnd: lineEnd,
-    disableValidatorsInConstructor: config.get('disableValidatorsInConstructor')
+    disableValidatorsInConstructor: config.get('disableValidatorsInConstructor'),
+    useUTC: context.useUTC
   })
 
   let result = [{

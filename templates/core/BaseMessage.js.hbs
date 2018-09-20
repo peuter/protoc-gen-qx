@@ -16,7 +16,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
       this.set(props){{lineEnd}}
     }
   },
-
+{{#useUTC}}
   /*
   *****************************************************************************
      STATICS
@@ -52,7 +52,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
       }
     }
   },
-
+{{/useUTC}}
   /*
   *****************************************************************************
      PROPERTIES
@@ -134,6 +134,13 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
      * @protected
      */
     _toDate: function (value) {
+      {{#useUTC}}
+      if (qx.lang.Type.isString(value) && value) {
+        return {{baseNamespace}}.core.BaseMessage.fromISOString(value){{lineEnd}}
+      } else {
+        return value{{lineEnd}}
+      }
+      {{else}}
       if (!value) {
         return null;
       }
@@ -141,6 +148,7 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
         return new Date(value){{lineEnd}}
       }
       return value{{lineEnd}}
+      {{/useUTC}}
     }{{#timestampSupport}},
 
     /**

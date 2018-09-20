@@ -16,12 +16,22 @@ module.exports = {
           setPropEntry(props, 'nullable', `true`)
           if (propertyDefinition.type.pbType === 'String') {
             // use RFC 3339 format
-            propertyDefinition.writerTransform = `
+            if (context.useUTC) {
+              propertyDefinition.writerTransform = `
       f = ${context.baseNamespace}.core.BaseMessage.toISOString(f)${context.lineEnd}`
+            } else {
+              propertyDefinition.writerTransform = `
+      f = f instanceof Date ? f.toISOString() : ''${context.lineEnd}`
+            }
           } else {
             // use timestamp
-            propertyDefinition.writerTransform = `
+            if (context.useUTC) {
+              propertyDefinition.writerTransform = `
+      f = f instanceof Date ? '' + Math.round((f.getTime() - f.getTimezoneOffset() * 60000) / 1000) : ''${context.lineEnd}`
+            } else {
+              propertyDefinition.writerTransform = `
       f = f instanceof Date ? '' + Math.round(f.getTime() / 1000) : ''${context.lineEnd}`
+            }
           }
           break
 

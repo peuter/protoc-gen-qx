@@ -44,7 +44,9 @@ const defaultConfig = {
   disableValidatorsInConstructor: false,
   // override settings for generated Manifest.json
   manifest: {},
-  whitelist: {}
+  whitelist: {},
+  // convert local date object to UTC by adding/subtracting the timezone offset before converting from/to string
+  useUTC: false
 }
 
 class Config {

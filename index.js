@@ -146,6 +146,7 @@ CodeGeneratorRequest()
         baseNamespace: baseNamespace,
         lineEnd: lineEnd,
         timestampSupport: !!config.get('timestampSupport'),
+        useUTC: config.get('useUTC') === true,
         defer: config.get('skipDepLoadingFallback') === true
           ? ''
           : `,
