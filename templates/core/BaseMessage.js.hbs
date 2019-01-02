@@ -44,8 +44,12 @@ qx.Class.define('{{baseNamespace}}.core.BaseMessage', {
       if (qx.lang.Type.isString(date) && date) {
         date = new Date(date){{lineEnd}}
       }
-      // Javascript Date automatically converts to local timezone
-      return date{{lineEnd}}
+      if (date instanceof Date) {
+        var tzoffset = date.getTimezoneOffset() * 60000{{lineEnd}} //offset in milliseconds
+        return (new Date(date.getTime() + tzoffset)){{lineEnd}}
+      } else {
+        return null{{lineEnd}}
+      }
     }
   },
 {{/useUTC}}
