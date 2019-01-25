@@ -201,8 +201,6 @@ CodeGeneratorRequest()
         promises.push(new Promise((resolve, reject) => {
           compiler.run((err, stats) => {
             if (err) reject(err)
-            console.error(config.output.filename, !!stats.compilation.assets[config.output.filename]);
-            console.error(Object.keys(stats.compilation.assets));
             if (stats.compilation.assets[config.output.filename]) {
               files.push({
                 name: `${sourceDir}/resource/${baseNamespace}/${config.output.filename}`,
