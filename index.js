@@ -201,10 +201,18 @@ CodeGeneratorRequest()
         promises.push(new Promise((resolve, reject) => {
           compiler.run((err, stats) => {
             if (err) reject(err)
-            files.push({
-              name: `${sourceDir}/resource/${baseNamespace}/${config.output.filename}`,
-              content: stats.compilation.assets[config.output.filename].source()
-            })
+            console.error(config.output.filename, !!stats.compilation.assets[config.output.filename]);
+            console.error(Object.keys(stats.compilation.assets));
+            if (stats.compilation.assets[config.output.filename]) {
+              files.push({
+                name: `${sourceDir}/resource/${baseNamespace}/${config.output.filename}`,
+                content: stats.compilation.assets[config.output.filename].source()
+              })
+            } else if (stats.compilation.errors.length > 0) {
+              reject(new Error(stats.compilation.errors[0]));
+            } else {
+              reject(new Error('file ' + config.output.filename + ' not found'));
+            }
             resolve()
           })
         }))

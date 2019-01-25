@@ -29,12 +29,12 @@
   },
   "bundleDependencies": false,
   "dependencies": {
+    "@improbable-eng/grpc-web": "^0.8.0",
     "eslint": "^4.19.1",
-    "grpc-web-client": "^0.7.0",
     "handlebars": "^4.0.12",
     "lodash.merge": "^4.6.1",
     "protoc-plugin": "0.0.6",
-    "webpack": "^4.27.1"
+    "webpack": "^4.29.0"
   },
   "deprecated": false,
   "description": "protoc-gen-qx is a plugin for the `protoc` code generator. It creates qooxdoo class definitions from proto-files.",
@@ -54,5 +54,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "protoc": "protoc -Iprotos --js_out=import_style=commonjs,binary:. extensions.proto"
   },
-  "version": "0.23.1"
+  "version": "0.24.0",
+  "devDependencies": {
+    "webpack-cli": "^3.2.1"
+  }
 }
