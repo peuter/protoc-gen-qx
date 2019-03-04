@@ -2,22 +2,24 @@
 
 class OptionHandlers {
     constructor () {
+        this.__order = [];
         this.__registry = {}
     }
 
     registerHandler (name, handler) {
+        this.__order.push(name);
         this.__registry[name] = handler
     }
 
     process (options, propertyDefinition, context) {
-        Object.keys(options).forEach(name => {
-            if (this.__registry.hasOwnProperty(name)) {
+        this.__order.forEach(name => {
+            if (options.hasOwnProperty(name)) {
                 try {
-                  this.__registry[name](options[name], propertyDefinition, context)
-                } catch (e) {
-                    console.error('Error processing '+name+' option:', e)
-                  throw e
-                }
+                    this.__registry[name](options[name], propertyDefinition, context)
+                  } catch (e) {
+                      console.error('Error processing '+name+' option:', e)
+                    throw e
+                  } 
             }
         })
     }

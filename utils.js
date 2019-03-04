@@ -29,7 +29,19 @@ function addAnnotations(props, values) {
   }
 }
 
+function hasAnnotation(props, value) {
+  const propEntry = props.find(entry => entry.key === `'@'`)
+  if (!propEntry) {
+    return false
+  }
+  if (propEntry.value.length === 0) {
+     return false
+  }
+  return propEntry.value.includes(value)
+}
+
 module.exports = {
     setPropEntry: setPropEntry,
-    addAnnotations: addAnnotations
+    addAnnotations: addAnnotations,
+    hasAnnotation: hasAnnotation
 }
