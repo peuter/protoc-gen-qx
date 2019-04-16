@@ -250,7 +250,6 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         oneOf.refs.push('')
       }
       setPropEntry(propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
-      setPropEntry(propertyDefinition.entries, 'nullable', true)
     }
 
     if (propertyDefinition.type.hasOwnProperty('transform')) {
@@ -408,7 +407,8 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       name: oneOf.name,
       entries: [
         {key: 'init', value: oneOf.defaultValue !== undefined ? oneOf.defaultValue : 'null'},
-        {key: 'event', value: `'${oneOf.event}'`}
+        {key: 'event', value: `'${oneOf.event}'`},
+        {key: 'nullable', value: true}
       ]
     }
     propDef.entries.unshift({key: 'check', value: `['${oneOf.names.join('\', \'')}']`})
