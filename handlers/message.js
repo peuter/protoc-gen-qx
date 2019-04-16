@@ -250,6 +250,7 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
         oneOf.refs.push('')
       }
       setPropEntry(propertyDefinition.entries, 'apply', `'_applyOneOf${prop.oneofIndex}'`)
+      setPropEntry(propertyDefinition.entries, 'nullable', true)
     }
 
     if (propertyDefinition.type.hasOwnProperty('transform')) {
@@ -343,7 +344,11 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(Object.assign({}, ...oneOf.refs.map((n, index) => ({[n]: oneOf.names[index]}))))}${lineEnd}`)
       context.members.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
-      this.set${firstUp}(name)${lineEnd}
+      if (value !== qx.util.PropertyUtil.getInitValue(this, name)) {
+        this.set${firstUp}(name)${lineEnd}
+      } else {
+        this.reset${firstUp}()${lineEnd}
+      }
 
       var oldValue = old${lineEnd}
       // reset all other values
