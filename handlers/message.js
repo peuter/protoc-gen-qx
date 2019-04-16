@@ -364,7 +364,11 @@ const genTypeClass = (messageType, s, proto, relNamespace) => {
       context.defers.push(`statics.ONEOFS[${index}] = ${JSON.stringify(oneOf.names)}${lineEnd}`)
       context.members.push(`// oneOf property apply
     _applyOneOf${index}: function (value, old, name) {
-      this.set${firstUp}(name)${lineEnd}
+      if (value !== qx.util.PropertyUtil.getInitValue(this, name)) {
+        this.set${firstUp}(name)${lineEnd}
+      } else {
+        this.reset${firstUp}()${lineEnd}
+      }
       
       var oldValue = old${lineEnd}
       // reset all other values
