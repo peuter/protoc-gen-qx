@@ -31,7 +31,7 @@
   "dependencies": {
     "@improbable-eng/grpc-web": "^0.8.0",
     "eslint": "^4.19.1",
-    "handlebars": "^4.0.12",
+    "handlebars": "^4.5.3",
     "lodash.merge": "^4.6.1",
     "protoc-plugin": "0.0.6",
     "webpack": "^4.29.0"
